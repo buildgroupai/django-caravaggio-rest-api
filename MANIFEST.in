@@ -1,0 +1,8 @@
+include README.md
+include LICENSE.md
+recursive-include caravaggio_rest_api/static *.js *.css *.png *.ico *.eot *.svg *.ttf *.woff *.woff2
+recursive-include caravaggio_rest_api/templates *.html schema.js
+recursive-include caravaggio_rest_api/locale *.mo
+recursive-include docs *
+global-exclude __pycache__
+global-exclude *.py[co]

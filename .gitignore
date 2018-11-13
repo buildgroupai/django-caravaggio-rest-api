@@ -1,0 +1,11 @@
+.idea/
+.tox/
+build/
+dist/
+*.egg-info
+*.pyc
+*.sqlite3
+site/
+README.rst
+.cache/
+__pycache__
