@@ -43,7 +43,7 @@ setup(
     name='djangocaravaggiorestapi',
     version=version,
     url='http://www.preseries.com',
-    license='BSD',
+    license='MIT',
     description='A Django REST API for BigData Projects.',
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
