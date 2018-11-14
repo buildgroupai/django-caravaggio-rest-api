@@ -35,12 +35,12 @@ if sys.argv[-1] == 'publish':
     print("  git push --tags")
     shutil.rmtree('dist')
     shutil.rmtree('build')
-    shutil.rmtree('djangocaravaggioapi.egg-info')
+    shutil.rmtree('django-caravaggio-rest-api.egg-info')
     sys.exit()
 
 
 setup(
-    name='djangocaravaggiorestapi',
+    name='django-caravaggio-rest-api',
     version=version,
     url='http://www.preseries.com',
     license='MIT',
