@@ -5,7 +5,7 @@ wheel==0.30.0
 #cassandra-driver>=3.15.0
 #dse-driver>=2.6
 #django-cassandra-engine>=1.5
-https://github.com/preseries/django-cassandra-engine/tarball/1.5.4-preseries-1#egg=django-cassandra-engine-1.5.4-preseries-1"
+https://github.com/preseries/django-cassandra-engine/tarball/1.5.4-preseries-1#egg=django-cassandra-engine-1.5.4-preseries-1
 
 # Django REST framework
 djangorestframework>=3.8.2
@@ -24,3 +24,6 @@ geopy>=1.17.0
 
 # Fuzzy
 fuzzywuzzy>=0.17
+
+# Redis cache for Django
+django-redis>=4.10.0

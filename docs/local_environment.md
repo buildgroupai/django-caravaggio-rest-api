@@ -45,11 +45,12 @@ postgres= \dx
 ```
 
 
-Create the database
+Create the database (Gives rights to create databases - for the tests)
 
 ```
 postgres= CREATE ROLE caravaggio WITH LOGIN PASSWORD 'caravaggio';
 postgres= CREATE DATABASE caravaggio WITH OWNER caravaggio ENCODING 'UTF8' TEMPLATE template1;
+postgres= ALTER USER caravaggio WITH SUPERUSER;
 postgres= \q 
 ```
 

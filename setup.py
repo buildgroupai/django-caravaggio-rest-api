@@ -59,7 +59,7 @@ setup(
         'djangorestframework-queryfields>=1.0.0',
         'django-rest-swagger>=2.2.0',
         'rest-framework-cache>=0.1',
-        'django-redis>=4.9.0',
+        'django-redis>=4.10.0',
         'markdown>=2.6.11',
         'gdal>=2.3.2',
         'geopy>=1.17.0',
@@ -90,7 +90,7 @@ setup(
     ],
     dependency_links=[
         "https://github.com/preseries/django-cassandra-engine/tarball/"
-        "1.5.4-preseries-1#egg=django-cassandra-engine-1.5.4-preseries-1",
+        "1.5.4.preseries-1#egg=django-cassandra-engine-1.5.4.preseries-1",
     ],
 )
 

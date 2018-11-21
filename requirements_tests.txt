@@ -1,0 +1,6 @@
+spitslurp>=0.4
+
+psycopg2-binary>=2.7.5
+
+#cassandra-driver>=3.15.0
+dse-driver>=2.6
