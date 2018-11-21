@@ -6,6 +6,7 @@ Django settings for Caravaggio REST API project.
 """
 
 import os
+import sys
 try:
     from dse import ConsistencyLevel
 except ImportError:
@@ -45,9 +46,10 @@ USE_X_FORWARDED_HOST = SECURE_SSL_REDIRECT
 
 INSTALLED_APPS = [
     'django_cassandra_engine',
+    'django_cassandra_engine.sessions',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',
+    #'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -58,7 +60,8 @@ INSTALLED_APPS = [
     'rest_framework_cache',
     'rest_framework_swagger',
     'haystack',
-    'caravaggio_rest_api'
+    'caravaggio_rest_api',
+    'caravaggio_rest_api.example.company'
 ]
 
 MIDDLEWARE = [
@@ -173,6 +176,13 @@ CASSANDRA_DB_USER = os.getenv("CASSANDRA_DB_USER", "caravaggio")
 CASSANDRA_DB_PASSWORD = os.getenv("CASSANDRA_DB_PASSWORD", "caravaggio")
 CASSANDRA_DB_STRATEGY = os.getenv("CASSANDRA_DB_STRATEGY", "SimpleStrategy")
 CASSANDRA_DB_REPLICATION = os.getenv("CASSANDRA_DB_REPLICATION", 1)
+
+try:
+    from dse.cqlengine import models
+except ImportError:
+    from cassandra.cqlengine import models
+
+models.DEFAULT_KEYSPACE = CASSANDRA_DB_NAME
 
 # Running on production App Engine, so connect to Google Cloud SQL using
 # the unix socket at /cloudsql/<your-cloudsql-connection string>
@@ -326,16 +336,15 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS':
         ('drf_haystack.filters.HaystackFilter',
          'drf_haystack.filters.HaystackBoostFilter',
-         'drf_haystack.filters.HaystackGEOSpatialFilter',
-         'drf_haystack.filters.HaystackFacetFilter',
-         'drf_haystack.filters.HaystackHighlightFilter',
-         'drf_haystack.filters.HaystackAutocompleteFilter',
          'drf_haystack.filters.HaystackOrderingFilter',),
 
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 
     'ORDERING_PARAM': 'order_by',
 }
+
+SESSION_ENGINE = 'django_cassandra_engine.sessions.backends.db'
+CASSANDRA_FALLBACK_ORDER_BY_PYTHON = True
 
 # Enable/Disable throttling
 THROTTLE_ENABLED = os.getenv("THROTTLE_ENABLED", "False") == "True"
@@ -348,9 +357,12 @@ DELETE_THROTTLE_RATE = "60/minute"
 VALIDATE_THROTTLE_RATE = "60/minute"
 PATCH_THROTTLE_RATE = "100/minute"
 METADATA_THROTTLE_RATE = "6000/minute"
+FACETS_THROTTLE_RATE = "6000/minute"
 
-THROTTLED_VIEWS = ["UserViewSet",
-                   "CompanyViewSet", "CompanySearchViewSet"]
+THROTTLED_VIEWS = [
+    "UserViewSet",
+
+    "CompanyViewSet", "CompanySearchViewSet", "CompanyGEOSearchViewSet"]
 
 THROTTLE_OPERATIONS = {
     'retrieve': GET_THROTTLE_RATE,
@@ -362,6 +374,7 @@ THROTTLE_OPERATIONS = {
     'validate': VALIDATE_THROTTLE_RATE,
     'partial_update': PATCH_THROTTLE_RATE,
     'metadata': METADATA_THROTTLE_RATE,
+    'facets': FACETS_THROTTLE_RATE
 }
 
 # Configure all the throttles by resource/operation (scopes) if
@@ -376,10 +389,13 @@ for view_to_throttle in THROTTLED_VIEWS:
 
 HAYSTACK_DJANGO_ID_FIELD = "id"
 
-HAYSTACK_KEYSPACE = os.getenv("HAYSTACK_KEYSPACE", "caravaggio")
+HAYSTACK_KEYSPACE = CASSANDRA_DB_NAME
+if 'test' in sys.argv:
+    HAYSTACK_KEYSPACE = "test_{}".format(HAYSTACK_KEYSPACE)
+
 HAYSTACK_URL = os.getenv("HAYSTACK_URL", "http://127.0.0.1:8983/solr")
 HAYSTACK_ADMIN_URL = os.getenv(
-    "HAYSTACK_URL", "http://127.0.0.1:8983/solr/admin/cores")
+    "HAYSTACK_ADMIN_URL", "http://127.0.0.1:8983/solr/admin/cores")
 
 HAYSTACK_CONNECTIONS = {
     'default': {
@@ -387,6 +403,9 @@ HAYSTACK_CONNECTIONS = {
         'URL': HAYSTACK_URL,
         'KEYSPACE': HAYSTACK_KEYSPACE,
         'ADMIN_URL': HAYSTACK_ADMIN_URL,
+        'BATCH_SIZE': 100,
+        'INCLUDE_SPELLING': True,
+        "DISTANCE_AVAILABLE": True,
     },
 }
 
