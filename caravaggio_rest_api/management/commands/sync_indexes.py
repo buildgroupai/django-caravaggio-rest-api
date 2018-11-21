@@ -412,7 +412,7 @@ def _create_index(model, index, connection=None):
         pass
 
 
-def sync(alias, only_model):
+def sync(alias, only_model=None):
     engine = get_engine_from_db_alias(alias)
 
     if engine != 'django_cassandra_engine':
