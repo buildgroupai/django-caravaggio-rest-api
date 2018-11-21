@@ -8,6 +8,7 @@ import logging
 from collections import OrderedDict
 
 from django.contrib.auth.models import User
+from django.test.client import RequestFactory
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
@@ -57,9 +58,13 @@ class CaravaggioBaseTest(TestCase):
         cls.force_authenticate(cls.user)
 
     @classmethod
-    def load_test_data(cls, file, serializer_class=None, type="JSON"):
+    def load_test_data(cls, file, serializer_class=None,
+                       username="admin", type="JSON"):
 
         logging.info("Loading data from file {}".format(file))
+
+        request = RequestFactory().get('./fake_path')
+        request.user = User.objects.get(username=username)
 
         if type == "JSON":
             data = json.loads(slurp(file))
@@ -70,7 +75,8 @@ class CaravaggioBaseTest(TestCase):
                 has_errors = False
                 errors_by_resource = {}
                 for index, resource in enumerate(data):
-                    serializer = serializer_class(data=resource)
+                    serializer = serializer_class(
+                        data=resource, context={'request': request})
                     if not serializer.is_valid():
                         has_errors = True
                         errors_by_resource["{}".format(index)] = \
