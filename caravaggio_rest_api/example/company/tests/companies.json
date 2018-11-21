@@ -1,0 +1,143 @@
+[{
+  "name": "Stealth Communications",
+  "short_description": "A provider of Gigabit Internet Access in NYC using the latest in fiber and photonic technologies.",
+  "foundation_date": "1994-12-04",
+  "country_code": "USA",
+  "stock_symbol": "XXX",
+  "contact_email": "info@stealth.net",
+  "founders": ["bc3697b1-3f4c-4cc9-8af4-0b00c82eef03", "bc3697b1-3f4c-4cc9-8af4-0b00c82eef04", "bc3697b1-3f4c-4cc9-8af4-0b00c82eef05"],
+  "address": {
+    "street_type": "Street",
+    "city": "New York",
+    "country_code": "USA"
+  },
+  "specialties": ["Internet", "Hardware", "Telecommunications"],
+  "latest_twitter_followers": [20030, 14099, 12933, 9003],
+  "websites": {
+    "website": "https://stealth.net",
+    "twitter": "https://twitter.com/stealthfiber",
+    "facebook": "https://www.facebook.com/stealthfiber",
+    "crunchbase": "https://www.crunchbase.com/organization/stealth-communications",
+    "linkedin_url": "https://www.linkedin.com/company/stealth-communications"},
+  "crawler_config": {
+    "crunchbase": {
+      "uuid": "5767bbbac9876208362bd3d122a077c6",
+      "permalink": "organization/stealth-communications"
+    }
+  },
+  "extra_data": {
+    "twitter_url_ts" : [
+        {
+            "date" : "2016-04-13T00:00:00.000Z",
+            "updated" : "2016-04-25T18:31:46.564Z",
+            "value" : "https://twitter.com/stealthfiber"
+        },
+        {
+            "date" : "2016-05-10T00:00:00.000Z",
+            "updated" : "2016-05-26T20:47:25.909Z",
+            "value" : "https://www.twitter.com/stealthfiber"
+        },
+        {
+            "date" : "2016-05-17T00:00:00.000Z",
+            "source" : null,
+            "kind" : 6,
+            "updated" : "2018-02-18T23:31:12.375Z",
+            "value" : "https://twitter.com/stealthfiber"
+        }
+    ],
+    "webpage_ts" : [
+        {
+            "date" : "2016-04-13T00:00:00.000Z",
+            "updated" : "2016-04-25T18:31:56.742Z",
+            "value" : "https://stealth.net"
+        },
+        {
+            "date" : "2016-05-10T00:00:00.000Z",
+            "updated" : "2016-05-26T21:08:21.178Z",
+            "value" : "stealth.net"
+        },
+        {
+            "date" : "2016-05-17T00:00:00.000Z",
+            "source" : null,
+            "kind" : 6,
+            "updated" : "2018-02-19T00:58:50.501Z",
+            "value" : "https://stealth.net"
+        }
+    ]
+  }
+},{
+  "name": "BigML",
+  "short_description": "BigML offers cloud-based and on-premises machine learning services, distributed systems, and data visualization.",
+  "foundation_date": "2011-01-01",
+  "country_code": "USA",
+  "stock_symbol": "YYY",
+  "domain": "bigml.com",
+  "contact_email": "info@stealth.net",
+  "founders": ["bb3697b1-3f4c-4cc9-8af4-0b00c82eef03", "cc3697b1-3f4c-4cc9-8af4-0b00c82eef03", "dd3697b1-3f4c-4cc9-8af4-0b00c82eef03"],
+  "latitude": 44.59641,
+  "longitude": -123.25022,
+  "address": {
+    "street_type": "Street",
+    "street_name": "NW 9th, Suite D",
+    "city": "Corvalis",
+    "country_code": "USA",
+    "state": "Oregon",
+    "zipcode": "2851"
+  },
+  "specialties": ["Internet", "Machine Learning", "Predictive Analytics"],
+  "latest_twitter_followers": [20030, 14099, 12933, 9003],
+  "websites": {
+    "website": "http://bigml.com",
+    "twitter": "http://twitter.com/bigmlcom",
+    "facebook": "https://www.facebook.com/BigML-132819120114893/?fref=ts",
+    "crunchbase": "https://www.crunchbase.com/organization/bigml",
+    "linkedin_url": "http://www.linkedin.com/company/bigml-inc"},
+  "crawler_config": {
+    "crunchbase": {
+      "uuid": "5767bbbac9876208362bd3d122a077c6",
+      "permalink": "organization/bigml"
+    }
+  },
+  "extra_data": {
+    "twitter_url_ts" : [
+        {
+            "date" : "2016-04-13T00:00:00.000Z",
+            "updated" : "2016-04-25T18:31:46.564Z",
+            "value" : "https://twitter.com/stealthfiber"
+        },
+        {
+            "date" : "2016-05-10T00:00:00.000Z",
+            "updated" : "2016-05-26T20:47:25.909Z",
+            "value" : "https://www.twitter.com/stealthfiber"
+        },
+        {
+            "date" : "2016-05-17T00:00:00.000Z",
+            "source" : null,
+            "kind" : 6,
+            "updated" : "2018-02-18T23:31:12.375Z",
+            "value" : "https://twitter.com/stealthfiber"
+        }
+    ],
+    "webpage_ts" : [
+        {
+            "date" : "2016-04-13T00:00:00.000Z",
+            "updated" : "2016-04-25T18:31:56.742Z",
+            "value" : "https://stealth.net"
+        },
+        {
+            "date" : "2016-05-10T00:00:00.000Z",
+            "updated" : "2016-05-26T21:08:21.178Z",
+            "value" : "stealth.net"
+        },
+        {
+            "date" : "2016-05-17T00:00:00.000Z",
+            "source" : null,
+            "kind" : 6,
+            "updated" : "2018-02-19T00:58:50.501Z",
+            "value" : "https://stealth.net"
+        }
+    ]
+  }
+}
+]
+
