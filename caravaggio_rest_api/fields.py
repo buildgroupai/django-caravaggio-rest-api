@@ -7,6 +7,7 @@ import inspect
 
 from django.utils import six, timezone
 from django.utils.timezone import utc
+from rest_framework.compat import unicode_to_repr
 
 try:
     from dse.cqlengine.usertype import UserType
@@ -17,6 +18,17 @@ from django.contrib.gis.measure import Distance
 
 from rest_framework import fields, serializers, ISO_8601
 from rest_framework.settings import api_settings
+
+
+class CurrentUserNameDefault(object):
+    def set_context(self, serializer_field):
+        self.user = serializer_field.context['request'].user
+
+    def __call__(self):
+        return self.user.username if self.user else None
+
+    def __repr__(self):
+        return unicode_to_repr('%s()' % self.__class__.__name__)
 
 
 class CassandraDateTimeField(fields.DateTimeField):
