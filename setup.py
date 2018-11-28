@@ -54,7 +54,7 @@ setup(
     install_requires=[
         'wheel>=0.30.0',
         'django>=2',
-        'django-cassandra-engine==1.5.4-preseries-1',
+        'django-cassandra-engine==1.5.4.preseries-1',
         'djangorestframework>=3.8.2',
         'djangorestframework-queryfields>=1.0.0',
         'django-rest-swagger>=2.2.0',
