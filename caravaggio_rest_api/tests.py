@@ -13,7 +13,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from django.test import TestCase
-from spitslurp import spit, slurp
+from spitslurp import slurp
 
 
 TEST_AVOID_INDEX_SYNC = "CARAVAGGIO_AVOID_INDEX_SYNC"

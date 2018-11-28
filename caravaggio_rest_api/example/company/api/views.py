@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*
 from drf_haystack.filters import HaystackFilter, HaystackBoostFilter, \
-    HaystackOrderingFilter, HaystackGEOSpatialFilter, HaystackFacetFilter
+    HaystackGEOSpatialFilter, HaystackFacetFilter
 
-from caravaggio_rest_api.drf_viewsets import \
+
+from caravaggio_rest_api.drf_haystack.filters import \
+    HaystackOrderingFilter
+
+from caravaggio_rest_api.drf_haystack.viewsets import \
     CustomModelViewSet, CustomHaystackViewSet
 
 # from rest_framework.authentication import \

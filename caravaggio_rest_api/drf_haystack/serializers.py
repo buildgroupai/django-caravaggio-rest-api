@@ -11,7 +11,8 @@ from rest_framework_cache.serializers import CachedSerializerMixin
 from rest_framework_cache.settings import api_settings
 
 from caravaggio_rest_api import fields as dse_fields
-from caravaggio_rest_api.dse_models import KeyEncodedMap
+from caravaggio_rest_api.dse.models import KeyEncodedMap
+from caravaggio_rest_api.dse.columns import Decimal
 from caravaggio_rest_api.utils import get_primary_keys_values
 
 try:
@@ -178,7 +179,7 @@ class CassandraModelSerializer(QueryFieldsMixin,
         fields.FloatField
     serializers.ModelSerializer.serializer_field_mapping[columns.Double] = \
         fields.FloatField
-    serializers.ModelSerializer.serializer_field_mapping[columns.Decimal] = \
+    serializers.ModelSerializer.serializer_field_mapping[Decimal] = \
         fields.DecimalField
     serializers.ModelSerializer.serializer_field_mapping[columns.Boolean] = \
         fields.BooleanField
@@ -186,6 +187,12 @@ class CassandraModelSerializer(QueryFieldsMixin,
         fields.FileField
     serializers.ModelSerializer.serializer_field_mapping[KeyEncodedMap] = \
         fields.DictField
+
+    # The DSE/Cassandra Decimal column is not supported by the DRF-Haystack
+    # fields.Decimal serializer, we need to use fields.CharField instead.
+    # See: https://github.com/inonit/drf-haystack/issues/116
+    serializers.ModelSerializer.serializer_field_mapping[columns.Decimal] = \
+        fields.CharField
 
     class Meta:
         error_status_codes = {

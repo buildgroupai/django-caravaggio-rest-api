@@ -341,6 +341,10 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 
     'ORDERING_PARAM': 'order_by',
+
+    # https://www.django-rest-framework.org/api-guide/fields/#decimalfield
+    # To use decimal as representation by default
+    'COERCE_DECIMAL_TO_STRING': False
 }
 
 SESSION_ENGINE = 'django_cassandra_engine.sessions.backends.db'

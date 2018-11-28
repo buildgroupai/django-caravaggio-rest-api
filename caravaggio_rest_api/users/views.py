@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAdminUser
 #    TokenAuthentication, SessionAuthentication
 # from rest_framework.permissions import IsAuthenticated
 
-from caravaggio_rest_api.drf_viewsets import CustomModelViewSet
+from caravaggio_rest_api.drf_haystack.viewsets import CustomModelViewSet
 
 from .serializers import UserSerializerV1
 

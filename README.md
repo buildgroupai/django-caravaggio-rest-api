@@ -20,5 +20,33 @@ Technologies:
 - PGBouncer Connection Pool supported in the Docker image
 
 
+## RESTFul Searches
 
-http://patorjk.com/software/taag/#p=display&h=3&f=Small%20Slant&t=APIAN
+Available operations:
+
+```
+    'content': u'%s',
+    'contains': u'*%s*',
+    'endswith': u'*%s',
+    'startswith': u'%s*',
+    'exact': u'%s',
+    'gt': u'{%s TO *}',
+    'gte': u'[%s TO *]',
+    'lt': u'{* TO %s}',
+    'lte': u'[* TO %s]',
+    'fuzzy': u'%s~',		
+    'in': u'("%s"... OR ... "%s")'
+    'range': u'[%s TO %s]'
+```    
+
+Boosting term:
+
+```
+boost=alpha_2,5
+```
+
+Geo Spatial searches:
+
+```
+km=10&from=-123.25022,44.59641
+```

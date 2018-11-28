@@ -281,8 +281,6 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
             http://yonik.com/json-facet-api/. Ex. offset/limit for pagination
             mincount, sort, missing, numBuckets, allbuckets,
         """
-        from haystack import connections
-
         details = {
             'type': "query",
             'facet': facets,

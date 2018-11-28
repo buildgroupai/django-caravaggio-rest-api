@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 from datetime import datetime, timedelta
 
-from caravaggio_rest_api.serializers import \
+from caravaggio_rest_api.drf_haystack.serializers import \
     BaseCachedSerializerMixin, CustomHaystackSerializer
 from drf_haystack.serializers import HaystackFacetSerializer
 
@@ -10,7 +10,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 
 from rest_framework_cache.registry import cache_registry
 
-from caravaggio_rest_api import serializers as dse_serializers
+from caravaggio_rest_api.drf_haystack import serializers as dse_serializers
 from caravaggio_rest_api import fields as dse_fields
 
 from caravaggio_rest_api.example.company.models import Company, Address
