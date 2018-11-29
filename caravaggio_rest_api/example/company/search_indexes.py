@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from haystack import indexes
 
-from caravaggio_rest_api.indexes import BaseSearchIndex
+from caravaggio_rest_api.haystack.indexes import BaseSearchIndex
 
 from .models import Company
 

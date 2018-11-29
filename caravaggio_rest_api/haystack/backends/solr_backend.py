@@ -1,19 +1,23 @@
 # -*- coding: utf-8 -*
-# Copyright (c) 2018-2019 PreSeries Tech, SL
-# All rights reserved.
+# Copyright (c) 2018 PreSeries Tech, SL
 import logging
 import re
 import json
 
+from django.utils import six
+
 from django.core.exceptions import ImproperlyConfigured
 
-from haystack import connection_router, connections
+from haystack.inputs import Clean, Exact, PythonData, Raw
 from haystack.backends import BaseEngine, EmptyResults
 from haystack.backends.solr_backend import SolrSearchQuery, SolrSearchBackend
 from haystack.constants import DJANGO_CT, DJANGO_ID, DEFAULT_ALIAS
 from haystack.exceptions import MissingDependency, FacetingError, \
     MoreLikeThisError
 from haystack.models import SearchResult
+
+from caravaggio_rest_api.haystack.backends import SolrSearchNode
+from caravaggio_rest_api.haystack.inputs import RegExp
 
 try:
     from pysolr import Solr, SolrError
@@ -215,8 +219,115 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
     def __init__(self, using=DEFAULT_ALIAS):
         super(CassandraSolrSearchQuery, self).\
             __init__(using=using)
-
+        self.query_filter = SolrSearchNode()
         self.json_facets = {}
+
+    def build_query_fragment(self, field, filter_type, value):
+        from haystack import connections
+        query_frag = ''
+
+        if not hasattr(value, 'input_type_name'):
+            # Handle when we've got a ``ValuesListQuerySet``...
+            if hasattr(value, 'values_list'):
+                value = list(value)
+
+            if filter_type in ["regex", "iregex"]:
+                value = RegExp(value)
+            elif isinstance(value, six.string_types):
+                # It's not an ``InputType``. Assume ``Clean``.
+                value = Clean(value)
+            else:
+                value = PythonData(value)
+
+        # Prepare the query using the InputType.
+        prepared_value = value.prepare(self)
+
+        if not isinstance(prepared_value, (set, list, tuple)):
+            # Then convert whatever we get back to what pysolr wants if needed.
+            prepared_value = self.backend.conn._from_python(prepared_value)
+
+        # 'content' is a special reserved word, much like 'pk' in
+        # Django's ORM layer. It indicates 'no special field'.
+        if field == 'content':
+            index_fieldname = ''
+        else:
+            index_fieldname = \
+                u'%s:' % connections[self._using].\
+                get_unified_index().get_index_fieldname(field)
+
+        filter_types = {
+            'content': u'%s',
+            'contains': u'*%s*',
+            'endswith': u'*%s',
+            'startswith': u'%s*',
+            'exact': u'%s',
+            'gt': u'{%s TO *}',
+            'gte': u'[%s TO *]',
+            'lt': u'{* TO %s}',
+            'lte': u'[* TO %s]',
+            'fuzzy': u'%s~',
+            'regex': u'/%s/',
+            'iregex': u'/%s/',
+        }
+
+        if value.post_process is False:
+            query_frag = prepared_value
+        else:
+            if filter_type in \
+                    ['content', 'contains', 'startswith',
+                     'endswith', 'fuzzy', 'regex', 'iregex']:
+                if value.input_type_name == 'exact':
+                    query_frag = prepared_value
+                else:
+                    # Iterate over terms & incorportate the converted
+                    # form of each into the query.
+                    terms = []
+
+                    for possible_value in prepared_value.split(' '):
+                        terms.append(
+                            filter_types[filter_type] % (
+                                self.backend.conn._from_python(possible_value)
+                                if filter_type not in ['regex', 'iregex']
+                                else possible_value))
+
+                    if len(terms) == 1:
+                        query_frag = terms[0]
+                    else:
+                        query_frag = u"(%s)" % " AND ".join(terms)
+            elif filter_type == 'in':
+                in_options = []
+
+                if not prepared_value:
+                    query_frag = u'(!*:*)'
+                else:
+                    for possible_value in prepared_value:
+                        in_options.append(
+                            u'"%s"' %
+                            self.backend.conn._from_python(possible_value))
+
+                    query_frag = u"(%s)" % " OR ".join(in_options)
+            elif filter_type == 'range':
+                start = self.backend.conn._from_python(prepared_value[0])
+                end = self.backend.conn._from_python(prepared_value[1])
+                query_frag = u'["%s" TO "%s"]' % (start, end)
+            elif filter_type == 'exact':
+                if value.input_type_name == 'exact':
+                    query_frag = prepared_value
+                else:
+                    prepared_value = Exact(prepared_value).prepare(self)
+                    query_frag = filter_types[filter_type] % prepared_value
+            else:
+                if value.input_type_name != 'exact':
+                    prepared_value = Exact(prepared_value).prepare(self)
+
+                query_frag = filter_types[filter_type] % prepared_value
+
+        if len(query_frag) and not isinstance(value, Raw) and \
+                filter_type not in ['regex', 'iregex']:
+            if not query_frag.startswith('(') and not query_frag.endswith(')'):
+                query_frag = "(%s)" % query_frag
+
+        return u"%s%s" % (index_fieldname, query_frag)
 
     def build_params(self, spelling_query=None, **kwargs):
         """Generates a list of params to use when searching."""
@@ -343,144 +454,3 @@ class CassandraSolrEngine(BaseEngine):
     backend = CassandraSolrSearchBackend
     query = CassandraSolrSearchQuery
 
-
-class CaravaggioSearchPaginator(object):
-
-    CURSORMARK_FIELD = 'cursorMark'
-    NEXT_CURSORMARK_FIELD = 'nextCursorMark'
-
-    def __init__(self, query_string, models=None, limit=None, using=None,
-                 max_limit=200, **kwargs):
-
-        self.using = using
-        self.query_string = query_string
-        self.limit = limit
-        self.cursorMark = "*"
-        self.max_limit = max_limit
-        self.search_kwargs = kwargs.copy()
-        if models:
-            self.search_kwargs["models"] = models
-        self.results = None
-        self.loaded_docs = 0
-        self.select_fields = None
-
-        self._determine_backend()
-
-    def reset(self):
-        self.cursorMark = "*"
-        self.results = None
-        self.loaded_docs = 0
-
-    def models(self, *models):
-        if not models:
-            if "models" in self.search_kwargs:
-                del self.search_kwargs["models"]
-        else:
-            self.search_kwargs["models"] = models
-
-        self._determine_backend()
-        return self
-
-    def select(self, *fields):
-        self.select_fields = fields
-        if not self.select_fields:
-            if "fl" in self.search_kwargs:
-                del self.search_kwargs["fl"]
-        else:
-            if "score" not in fields:
-                fields = list(fields)
-                fields.append("score")
-            self.search_kwargs["fl"] = fields
-        return self
-
-    def _determine_backend(self):
-        # A backend has been manually selected. Use it instead.
-        if self.using is not None:
-            self.backend = connections[self.using].get_backend()
-            return
-
-        # No backend, so rely on the routers to figure out what's right.
-        hints = {'models': self.models}
-
-        backend_alias = connection_router.for_read(**hints)
-
-        self.backend = connections[backend_alias].get_backend()
-
-    def get_hits(self):
-        return self.results["hits"] if self.results is not None else None
-
-    def get_results(self):
-        return self.results["results"] if self.results is not None else None
-
-    def get_raw_results(self):
-        return self.results
-
-    def get_loaded_docs(self):
-        return self.loaded_docs
-
-    def has_next(self):
-
-        # We cannot use CursorMarkets with Grouping. We will look if the
-        # number of results is less than the informed limit
-        is_group = 'group' in self.search_kwargs and \
-                   'true' == self.search_kwargs[str('group')]
-
-        if is_group:
-            valid_limit = self.limit \
-                if self.limit is not None and self.limit < self.max_limit \
-                else self.max_limit
-            return self.results is None or \
-                (0 < len(self.results['groups']) <= valid_limit)
-        else:
-            return self.results is None or self.cursorMark != \
-                   self.results[
-                       CaravaggioSearchPaginator.NEXT_CURSORMARK_FIELD]
-
-    def next(self):
-
-        if self.has_next():
-
-            # We cannot use CursorMarkets with Grouping. We will look if the
-            # number of results is less than the informed limit
-            is_group = 'group' in self.search_kwargs and \
-                       'true' == self.search_kwargs[str('group')]
-
-            if is_group:
-                self.search_kwargs[str('start_offset')] = self.loaded_docs
-
-                self.search_kwargs['end_offset'] = self.loaded_docs + (
-                    self.limit if self.limit is not None and
-                    self.limit < self.max_limit
-                    else self.max_limit)
-            else:
-
-                # Save the next cursor mark as the actual cursor mark to send
-                # to the server
-                if self.results:
-                    self.cursorMark = self.results[
-                        CaravaggioSearchPaginator.NEXT_CURSORMARK_FIELD]
-
-                # Signaling the cursor mark
-                if 'start_offset' in self.search_kwargs:
-                    del self.search_kwargs[str('start_offset')]
-
-                self.search_kwargs['end_offset'] = self.limit \
-                    if self.limit is not None and \
-                    self.limit < self.max_limit else self.max_limit
-
-                self.search_kwargs[
-                    CaravaggioSearchPaginator.CURSORMARK_FIELD] = \
-                    self.cursorMark
-
-            # Do the search
-            self.results = self.backend.search(
-                query_string=self.query_string, **self.search_kwargs)
-
-            if is_group:
-                self.loaded_docs += len(self.results['groups'])
-            else:
-                self.loaded_docs += len(self.results['results'])
-
-            return self.results
-        else:
-            return EmptyResults()

@@ -20,6 +20,45 @@ Technologies:
 - PGBouncer Connection Pool supported in the Docker image
 
 
+### Run the tests
+
+To run the tests we only need to run the following instruction:
+
+```
+$ python manage.py test --testrunner=caravaggio_rest_api.testrunner.TestRunner
+```
+
+The output will be something like:
+
+```
+Creating test database for alias 'default'...
+Creating test database for alias 'cassandra'...
+Creating keyspace test_apian [CONNECTION cassandra] ..
+Syncing davinci_crawling.example.models.BovespaCompany
+Syncing davinci_crawling.example.models.BovespaCompanyFile
+Syncing davinci_crawling.example.models.BovespaAccount
+System check identified no issues (0 silenced).
+...
+...
+```
+
+Avoid the destruction of the database after the tests have finished and the indexes synchronization:
+
+```
+$ python manage.py test --testrunner=caravaggio_rest_api.testrunner.TestRunner --keepdb --keep-indexes
+```
+
+# Install GDAL for Spatial queries
+
+In Sierra MAC OSX:
+
+```
+$ sudo chown -R $(whoami) $(brew --prefix)/*
+$ sudo install -d -o $(whoami) -g admin /usr/local/Frameworks
+$ brew install gdal
+
+```
+
 ## RESTFul Searches
 
 Available operations:

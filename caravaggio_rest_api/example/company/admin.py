@@ -81,10 +81,6 @@ class CompanyForm(forms.ModelForm):
         return None
 
     def is_valid(self):
-        import pydevd
-        pydevd.settrace('localhost', port=8787, stdoutToServer=True,
-                        stderrToServer=True)
-
         if self.instance.last_round and \
                 self.instance.last_round < self.instance.foundation_date:
             raise ValidationError(
