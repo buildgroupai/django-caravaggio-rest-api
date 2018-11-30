@@ -8,7 +8,7 @@ from drf_haystack.filters import \
 
 from drf_haystack.viewsets import HaystackViewSet
 
-from rest_framework.filters import  ORDER_PATTERN
+from rest_framework.filters import ORDER_PATTERN
 
 
 class HaystackOrderingFilter(DRFHaystackOrderingFilter):
@@ -17,7 +17,7 @@ class HaystackOrderingFilter(DRFHaystackOrderingFilter):
 
     def get_indexes(self):
         if self._index is None:
-           self._index = UnifiedIndex().get_indexes()
+            self._index = UnifiedIndex().get_indexes()
         return self._index
 
     def get_valid_fields(self, queryset, view, context={}):

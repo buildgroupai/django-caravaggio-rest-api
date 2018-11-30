@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'django_cassandra_engine.sessions',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    #'django.contrib.sessions',
+    # 'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -403,7 +403,9 @@ HAYSTACK_ADMIN_URL = os.getenv(
 
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': 'caravaggio_rest_api.haystack.backends.solr_backend.CassandraSolrEngine',
+        'ENGINE':
+            'caravaggio_rest_api.haystack.backends.'
+            'solr_backend.CassandraSolrEngine',
         'URL': HAYSTACK_URL,
         'KEYSPACE': HAYSTACK_KEYSPACE,
         'ADMIN_URL': HAYSTACK_ADMIN_URL,

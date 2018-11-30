@@ -96,9 +96,9 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
 
                     for field_name in fields_name:
                         json_facets["{0}_{1}".
-                            format(facet_name, field_name)] = \
+                                format(facet_name, field_name)] = \
                             [(bucket["val"], bucket[field_name])
-                             for bucket in buckets["buckets"]]
+                                for bucket in buckets["buckets"]]
 
         if hasattr(raw_results, 'facets'):
             ranges = raw_results.facets.get('facet_ranges', {})
@@ -214,7 +214,6 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
 
 
 class CassandraSolrSearchQuery(SolrSearchQuery):
-
 
     def __init__(self, using=DEFAULT_ALIAS):
         super(CassandraSolrSearchQuery, self).\
@@ -433,7 +432,9 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
     def run_mlt(self, **kwargs):
         """Builds and executes the query. Returns a list of search results."""
         if self._more_like_this is False or self._mlt_instance is None:
-            raise MoreLikeThisError("No instance was provided to determine 'More Like This' results.")
+            raise MoreLikeThisError(
+                "No instance was provided to determine"
+                " 'More Like This' results.")
 
         additional_query_string = self.build_query()
         search_kwargs = {
@@ -445,7 +446,8 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
         if self.end_offset is not None:
             search_kwargs['end_offset'] = self.end_offset - self.start_offset
 
-        results = self.backend.more_like_this(self._mlt_instance, additional_query_string, **search_kwargs)
+        results = self.backend.more_like_this(
+            self._mlt_instance, additional_query_string, **search_kwargs)
         self._results = results.get('results', [])
         self._hit_count = results.get('hits', 0)
 
@@ -453,4 +455,3 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
 class CassandraSolrEngine(BaseEngine):
     backend = CassandraSolrSearchBackend
     query = CassandraSolrSearchQuery
-

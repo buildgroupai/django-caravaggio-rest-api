@@ -50,9 +50,6 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             load_test_data("{}/companies.json".format(current_path),
                            CompanySerializerV1)
 
-
-#    def setUp(self):
-
     def test_create_companies(self):
         for company in self.companies:
             _logger.info("POST Company: {}".format(company["name"]))

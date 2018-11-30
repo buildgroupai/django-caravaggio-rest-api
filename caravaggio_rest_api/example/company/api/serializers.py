@@ -61,7 +61,6 @@ class CompanySerializerV1(dse_serializers.CassandraModelSerializer,
     crawler_config = dse_fields.CassandraJSONFieldAsText(required=False)
     extra_data = dse_fields.CassandraJSONFieldAsText(required=False)
 
-
     class Meta:
         error_status_codes = {
             HTTP_400_BAD_REQUEST: "Bad Request"

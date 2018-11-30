@@ -12,10 +12,10 @@ FOUNDATION_YEAR_DATES = range(2000, datetime.utcnow().year)
 
 ROUND_YEAR_DATES = range(2000, datetime.utcnow().year)
 
-SPECIALITIES = (('tourism','Tourism'),
-                ('crypto','Cryptocurrency'),
-                ('financial','Financial'),
-                ('predictive_analytics','Predictive Analytics'),)
+SPECIALITIES = (('tourism', 'Tourism'),
+                ('crypto', 'Cryptocurrency'),
+                ('financial', 'Financial'),
+                ('predictive_analytics', 'Predictive Analytics'),)
 
 
 class MultipleValueWidget(forms.TextInput):
@@ -65,9 +65,9 @@ class CompanyForm(forms.ModelForm):
         required=False,
         choices=SPECIALITIES, widget=forms.CheckboxSelectMultiple())
 
-    #latest_twitter_followers = MultipleIntField(
+    # latest_twitter_followers = MultipleIntField(
     #    label="Tweeter Followers"
-    #)
+    # )
 
     class Meta:
         model = Company
@@ -87,7 +87,7 @@ class CompanyForm(forms.ModelForm):
                 "The round date cannot be before the foundation date.")
 
         current_user = self.get_admin_request()
-        if self.instance and self.instance.user != None:
+        if self.instance and self.instance.user is not None:
             if self.instance.user != current_user:
                 raise ValidationError("You are not the owner of this object."
                                       " Only the owner can change details.")
