@@ -8,7 +8,7 @@ r"""
 """
 
 __title__ = 'Django Caravaggio REST API for Big Data'
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 __author__ = 'Javier Alperte'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2018-2019 PreSeries Tech S.L.'
