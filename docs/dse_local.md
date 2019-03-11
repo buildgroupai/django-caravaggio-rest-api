@@ -1,7 +1,6 @@
-# Getting started with Django on Google Cloud Platform on App Engine Flexible
+# Install DSE in our local system
 
-[![Open in Cloud Shell][shell_img]][shell_link]
-
+This document describes how to install DataStax Enterprise in your local system for development.
 
 ## Sources
 
@@ -428,6 +427,47 @@ cqlsh> SELECT * FROM weather_sensors WHERE solr_query = 'event_time:[* TO *]';
 (6 rows)
 ```
 
+
+## Backup 
+
+We use this utility to backup the data as raw inserts from a keyspace or column families: [cassandradump](https://github.com/preseries/cassandradump).
+
+1- Do a backup of a local cassandra keystore:
+
+```
+python cassandradump.py --keyspace [KEYSPACE_NAME] --protocol-version 4 --export-file BACKUP_FIlE
+```
+
+2- Restore a backup into a GCP cassandra cluster:
+
+Imagine we have a datastax cluster running on GCP. And the servers are running with these IPs:
+
+- gasp-datastax-europe-west2-a-1-vm = 10.154.0.6
+- gasp-datastax-europe-west2-a-3-vm = 10.154.0.3
+- gasp-datastax-europe-west2-a-2-vm = 10.154.0.4
+
+
+First we need to create local interfaces for remote servers:
+
+```
+sudo ifconfig lo0 alias 10.154.0.6
+sudo ifconfig lo0 alias 10.154.0.3
+sudo ifconfig lo0 alias 10.154.0.4
+```
+
+Then we can create tunnel connections to the GCP cluster instances
+
+```
+gcloud compute ssh --ssh-flag="-L10.154.0.6:9042:10.154.0.6:9042 -L10.154.0.6:8983:10.154.0.6:8983" --project=dotted-ranger-212213 --zone=europe-west2-a gasp-datastax-europe-west2-a-1-vm
+gcloud compute ssh --ssh-flag=-L10.154.0.3:9042:10.154.0.3:9042 --project=dotted-ranger-212213 --zone=europe-west2-a gasp-datastax-europe-west2-a-3-vm
+gcloud compute ssh --ssh-flag=-L10.154.0.4:9042:10.154.0.4:9042 --project=dotted-ranger-212213 --zone=europe-west2-a gasp-datastax-europe-west2-a-2-vm
+```
+
+Then we are ready to run the restore command:
+
+```
+python cassandradump.py --host 10.154.0.6 --keyspace [KEYSPACE_NAME] --protocol-version 4 --username [USERNAME] --password [PASSWOR] --import-file BACKUP_FIlE
+```
 
 ## Troubleshooting
 
