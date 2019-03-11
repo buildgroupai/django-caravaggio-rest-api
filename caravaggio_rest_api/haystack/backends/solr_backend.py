@@ -3,7 +3,10 @@
 import logging
 import re
 import json
+import datetime
+import ast
 
+from six import string_types
 from django.utils import six
 
 from django.core.exceptions import ImproperlyConfigured
@@ -17,10 +20,11 @@ from haystack.exceptions import MissingDependency, FacetingError, \
 from haystack.models import SearchResult
 
 from caravaggio_rest_api.haystack.backends import SolrSearchNode
+from caravaggio_rest_api.haystack.backends.utils import is_valid_uuid
 from caravaggio_rest_api.haystack.inputs import RegExp
 
 try:
-    from pysolr import Solr, SolrError
+    from pysolr import Solr, SolrError, force_unicode, IS_PY3, DATETIME_REGEX
 except ImportError:
     raise MissingDependency("The 'solr' backend requires the installation"
                             " of 'pysolr'. Please refer to the documentation.")
@@ -75,11 +79,16 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
     def clear(self, models=None, commit=True):
         raise NotImplemented("Clear is not allowed in DSE")
 
-    def _process_results(self, raw_results, highlight=False,
+    def _process_results(self, raw_results, model=None, highlight=False,
                          result_class=None, distance_point=None):
 
         results = super()._process_results(
             raw_results, highlight, result_class, distance_point)
+
+        results["qtime"] = raw_results.qtime
+        if "params" in raw_results.raw_response['responseHeader']:
+            results["params"] = \
+                raw_results.raw_response['responseHeader']['params']
 
         if hasattr(raw_results, 'raw_response') and \
                 'facets' in raw_results.raw_response:
@@ -110,7 +119,136 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
         if hasattr(raw_results, 'nextCursorMark'):
             results["nextCursorMark"] = raw_results.nextCursorMark
 
+        if hasattr(raw_results, 'grouped'):
+            groups = {}
+            hits = raw_results.hits
+
+            app_model = model._meta.label_lower
+
+            index = 0
+
+            for group_field in raw_results.grouped.keys():
+                # Convert to a two-tuple, as Solr's json format returns a
+                # list of pairs.
+                for group in raw_results.grouped[group_field]['groups']:
+                    group_data = groups.setdefault(group['groupValue'], [])
+                    for doc in group['doclist']['docs']:
+                        doc[DJANGO_CT] = app_model
+                        doc[DJANGO_ID] = index
+
+                        app_label, model_name = doc[DJANGO_CT].split('.')
+
+                        # TODO: PreSeries
+                        additional_fields = {}
+
+                        for key, value in doc.items():
+                            string_key = str(key)
+
+                            additional_fields[string_key] = \
+                                self._to_python(value)
+
+                        result = result_class(
+                            app_label,
+                            model_name,
+                            doc[DJANGO_ID],
+                            **additional_fields)
+
+                        group_data.append(result)
+                        hits += 1
+
+            results["hits"] = hits
+            results["groups"] = groups
+
         return results
+
+    # TODO: PreSeries.
+    # Added because the ObjectId that only contains numbers were converted
+    # into float -> Inf
+    def _to_python(self, value):
+        """
+        Converts values from Solr to native Python values.
+        """
+        if value is None:
+            return value
+
+        if isinstance(value, (int, float, complex)):
+            return value
+
+        is_list = isinstance(value, (list, tuple))
+
+        values_processed = []
+        values_to_process = []
+
+        if isinstance(value, (list, tuple)):
+            # Clone the value
+            values_to_process = value[:]
+        else:
+            values_to_process.append(value)
+
+        for value in values_to_process:
+
+            if value == 'true':
+                values_processed.append(True)
+                continue
+            elif value == 'false':
+                values_processed.append(False)
+                continue
+
+            is_string = False
+
+            if IS_PY3:
+                if isinstance(value, bytes):
+                    value = force_unicode(value)
+
+                if isinstance(value, str):
+                    is_string = True
+            else:
+                if isinstance(value, str):
+                    value = force_unicode(value)
+
+                if isinstance(value, string_types):
+                    is_string = True
+
+            if is_string:
+                possible_datetime = DATETIME_REGEX.search(value)
+
+                if possible_datetime:
+                    date_values = possible_datetime.groupdict()
+
+                    for dk, dv in date_values.items():
+                        date_values[dk] = int(dv)
+
+                    values_processed.append(datetime.datetime(
+                        date_values['year'], date_values['month'],
+                        date_values['day'], date_values['hour'],
+                        date_values['minute'], date_values['second']))
+                    continue
+                # elif ObjectId.is_valid(value):
+                #    values_processed.append(value)
+                #    continue
+                elif is_valid_uuid(value, version=4):
+                    values_processed.append(value)
+                    continue
+                elif is_valid_uuid(value, version=3):
+                    values_processed.append(value)
+                    continue
+                elif is_valid_uuid(value, version=2):
+                    values_processed.append(value)
+                    continue
+                elif is_valid_uuid(value, version=1):
+                    values_processed.append(value)
+                    continue
+            try:
+                # This is slightly gross but it's hard to tell otherwise what
+                # the string's original type might have been.
+                values_processed.append(ast.literal_eval(value))
+            except (ValueError, SyntaxError):
+                # If it fails, continue on.
+                pass
+
+            values_processed.append(value)
+
+        return values_processed if is_list else values_processed[0]
 
     def build_search_kwargs(self, query_string, sort_by=None,
                             start_offset=0, end_offset=None,
@@ -197,7 +335,9 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
             raw_result[DJANGO_ID] = index
 
         return self._process_results(
-            raw_results, highlight=kwargs.get('highlight'),
+            raw_results,
+            model=model,
+            highlight=kwargs.get('highlight'),
             result_class=kwargs.get('result_class', SearchResult),
             distance_point=kwargs.get('distance_point'))
 

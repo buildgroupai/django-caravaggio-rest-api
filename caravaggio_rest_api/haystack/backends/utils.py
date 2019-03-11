@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*
 # Copyright (c) 2018 PreSeries Tech, SL
+from uuid import UUID
+
 from haystack import connection_router, connections
 from haystack.backends import EmptyResults
 
@@ -70,7 +72,13 @@ class CaravaggioSearchPaginator(object):
         return self.results["hits"] if self.results is not None else None
 
     def get_results(self):
-        return self.results["results"] if self.results is not None else None
+        is_group = 'group' in self.search_kwargs and \
+                   'true' == self.search_kwargs[str('group')]
+
+        if is_group:
+            return self.results["groups"] if self.results is not None else None
+        else:
+            return self.results["results"] if self.results is not None else None
 
     def get_raw_results(self):
         return self.results
@@ -144,3 +152,31 @@ class CaravaggioSearchPaginator(object):
             return self.results
         else:
             return EmptyResults()
+
+
+def is_valid_uuid(uuid_to_test, version=4):
+    """
+    Check if uuid_to_test is a valid UUID.
+
+    Parameters
+    ----------
+    uuid_to_test : str
+    version : {1, 2, 3, 4}
+
+    Returns
+    -------
+    `True` if uuid_to_test is a valid UUID, otherwise `False`.
+
+    Examples
+    --------
+    >>> is_valid_uuid('c9bf9e57-1685-4c89-bafb-ff5af830be8a')
+    True
+    >>> is_valid_uuid('c9bf9e58')
+    False
+    """
+    try:
+        uuid_obj = UUID(uuid_to_test, version=version)
+    except:
+        return False
+
+    return str(uuid_obj) == uuid_to_test
