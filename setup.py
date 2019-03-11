@@ -61,7 +61,7 @@ setup(
         'rest-framework-cache>=0.1',
         'django-redis>=4.10.0',
         'markdown>=2.6.11',
-        'gdal>=2.3.2',
+        'gdal==2.3.2',
         'geopy>=1.17.0',
         'drf-haystack>=1.8.4',
         'pysolr>=3.7.0',
