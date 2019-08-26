@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*
-# Copyright (c) 2018-2019 PreSeries Tech, SL
+# Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
 from drf_haystack.serializers import HaystackSerializer
 from rest_framework import serializers, fields

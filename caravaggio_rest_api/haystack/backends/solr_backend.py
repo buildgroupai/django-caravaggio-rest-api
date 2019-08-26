@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*
-# Copyright (c) 2018 PreSeries Tech, SL
+# Copyright (c) 2019 BuildGroup Data Services Inc.
 import logging
 import re
 import json
@@ -138,7 +138,7 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
 
                         app_label, model_name = doc[DJANGO_CT].split('.')
 
-                        # TODO: PreSeries
+                        # TODO: BGDS
                         additional_fields = {}
 
                         for key, value in doc.items():
@@ -161,7 +161,7 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
 
         return results
 
-    # TODO: PreSeries.
+    # TODO: BGDS.
     # Added because the ObjectId that only contains numbers were converted
     # into float -> Inf
     def _to_python(self, value):

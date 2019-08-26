@@ -1,7 +1,7 @@
 """
 Django settings for Caravaggio REST API project.
 
-# Copyright (c) 2018-2019 PreSeries Tech, SL
+# Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
 """
 
