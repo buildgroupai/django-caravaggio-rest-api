@@ -8,13 +8,13 @@ wheel==0.30.0
 https://github.com/preseries/django-cassandra-engine/tarball/1.5.4-preseries-1#egg=django-cassandra-engine-1.5.4.preseries-1
 
 # Django REST framework
-djangorestframework>=3.8.2
+# djangorestframework>=3.8.2
 djangorestframework-queryfields>=1.0.0
 rest-framework-cache>=0.1
 markdown>=2.6.11  # Markdown support for the browsable API.
 
 # Solr Queries for DataStax cores
-drf-haystack>=1.8.4
+drf-haystack>=1.8.5
 pysolr>=3.7.0
 solrq>=1.1.1
 
