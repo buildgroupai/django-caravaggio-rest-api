@@ -10,7 +10,9 @@ https://github.com/preseries/django-cassandra-engine/tarball/1.5.4-preseries-1#e
 # Django REST framework
 # djangorestframework>=3.8.2
 djangorestframework-queryfields>=1.0.0
+django-rest-swagger>=2.2.0
 rest-framework-cache>=0.1
+pyyaml>=5.1.2
 markdown>=2.6.11  # Markdown support for the browsable API.
 
 # Solr Queries for DataStax cores
