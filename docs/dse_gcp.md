@@ -13,7 +13,7 @@ We are going to details how to install a local DSE cluster in production.
 Before deploy DSE in production we will need to have the following information at hand:
 
 - GCP Project Name: `<PROJECT_NAME>`
-- The deployment name: `<DEPLOYMENT_NAME>`. Ex. `preseries-dse`
+- The deployment name: `<DEPLOYMENT_NAME>`. Ex. `buildgroupai-dse`
 - The zones where we want to deploy the cluster nodes: `<GCP_NODES_ZONE_1>`, `<GCP_NODES_ZONE_2>`. Ex: `europe-west1-b`, `europe-west1-c`, `us-east1-b`, `us-east1-c`.
 - The zone where we want to deploy the OpsCenter: `<GCP_OPSCENTER_ZONE>`. Ex: `europe-west1-b`
 - The number of nodes that we want per zone: `<NODES_PER_ZONE>`. Ex. `4`
@@ -104,7 +104,7 @@ Data that we need to gather to setup the configuration:
 - The <CASSANDRA_PASS> (it's also available at the details section of the OpsCenter VM instance. Parameter: cassandra_user_pwd)
 - For each node in the DSE Cluster:
     - Its internal IP (ex. 10.154.0.1, 10.154.0.2,..., 10.154.0.16)
-    - Its instance name (ex. preseries-datastax-europe-west2-a-1-vm)
+    - Its instance name (ex. buildgroupai-datastax-europe-west2-a-1-vm)
 
 __NOTE__: The Internal IPs will be different for you, and could not be a perfect sequence. It will depends in the zones you are using and if you already have other instances started in your project. 
 
@@ -121,14 +121,14 @@ $ sudo ifconfig lo0 alias 10.154.0.16
 We create a ssh tunneling to all nodes in the cluster:
 
 ```
-$ gcloud compute ssh --ssh-flag="-L10.154.0.1:9042:10.154.0.1:9042 -L10.154.0.1:8983:10.154.0.1:8983" --project=<PROJECT_NAME> --zone=europe-west2-b preseries-dse-europe-west2-b-1-vm
-$ gcloud compute ssh --ssh-flag="-L10.154.0.2:9042:10.154.0.2:9042 -L10.154.0.2:8983:10.154.0.2:8983" --project=<PROJECT_NAME> --zone=europe-west2-b preseries-dse-europe-west2-b-2-vm
-$ gcloud compute ssh --ssh-flag="-L10.154.0.3:9042:10.154.0.3:9042 -L10.154.0.3:8983:10.154.0.3:8983" --project=<PROJECT_NAME> --zone=europe-west2-b preseries-dse-europe-west2-b-3-vm
+$ gcloud compute ssh --ssh-flag="-L10.154.0.1:9042:10.154.0.1:9042 -L10.154.0.1:8983:10.154.0.1:8983" --project=<PROJECT_NAME> --zone=europe-west2-b buildgroupai-dse-europe-west2-b-1-vm
+$ gcloud compute ssh --ssh-flag="-L10.154.0.2:9042:10.154.0.2:9042 -L10.154.0.2:8983:10.154.0.2:8983" --project=<PROJECT_NAME> --zone=europe-west2-b buildgroupai-dse-europe-west2-b-2-vm
+$ gcloud compute ssh --ssh-flag="-L10.154.0.3:9042:10.154.0.3:9042 -L10.154.0.3:8983:10.154.0.3:8983" --project=<PROJECT_NAME> --zone=europe-west2-b buildgroupai-dse-europe-west2-b-3-vm
 ...
 ...
-$ gcloud compute ssh --ssh-flag="-L10.154.0.14:9042:10.154.0.14:9042 -L10.154.0.14:8983:10.154.0.14:8983" --project=<PROJECT_NAME> --zone=us-east1-c preseries-dse-us-east1-c-1-vm
-$ gcloud compute ssh --ssh-flag="-L10.154.0.15:9042:10.154.0.15:9042 -L10.154.0.15:8983:10.154.0.15:8983" --project=<PROJECT_NAME> --zone=us-east1-c preseries-dse-us-east1-c-2-vm
-$ gcloud compute ssh --ssh-flag="-L10.154.0.16:9042:10.154.0.16:9042 -L10.154.0.16:8983:10.154.0.16:8983" --project=<PROJECT_NAME> --zone=us-east1-c preseries-dse-us-east1-c-3-vm
+$ gcloud compute ssh --ssh-flag="-L10.154.0.14:9042:10.154.0.14:9042 -L10.154.0.14:8983:10.154.0.14:8983" --project=<PROJECT_NAME> --zone=us-east1-c buildgroupai-dse-us-east1-c-1-vm
+$ gcloud compute ssh --ssh-flag="-L10.154.0.15:9042:10.154.0.15:9042 -L10.154.0.15:8983:10.154.0.15:8983" --project=<PROJECT_NAME> --zone=us-east1-c buildgroupai-dse-us-east1-c-2-vm
+$ gcloud compute ssh --ssh-flag="-L10.154.0.16:9042:10.154.0.16:9042 -L10.154.0.16:8983:10.154.0.16:8983" --project=<PROJECT_NAME> --zone=us-east1-c buildgroupai-dse-us-east1-c-3-vm
 ```
 
 At this point we can start up cqlsh, the command line interface to DataStax Enterprise:
@@ -192,7 +192,7 @@ gcloud compute instances create [INSTANCE_NAME] --metadata enable-oslogin=TRUE
 Once we have our instances configured and ready, we can create our SSH private key.
 
 ```
-ssh-keygen -t rsa -b 4096 -C "username@preseries.com"
+ssh-keygen -t rsa -b 4096 -C "username@buildgroupai.com"
 ```
 
 This creates a new ssh key, using the provided email as a label. We should give an specific name to the key files, for instance: 

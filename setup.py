@@ -42,19 +42,19 @@ if sys.argv[-1] == 'publish':
 setup(
     name='django-caravaggio-rest-api',
     version=version,
-    url='http://www.preseries.com',
+    url='http://buildgroupai.com',
     license='MIT',
     description='A Django REST API for BigData Projects.',
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
     author='Javier Alperte',
-    author_email='alperte@preseries.com',  # SEE NOTE BELOW (*)
+    author_email='xalperte@buildgroupai.com',  # SEE NOTE BELOW (*)
     packages=find_packages(exclude=['tests*']),
     include_package_data=True,
     install_requires=[
         'wheel>=0.30.0',
         'django>=2',
-        'django-cassandra-engine==1.5.4.preseries-1',
+        'django-cassandra-engine==1.5.4.bgds-1',
         # 'djangorestframework>=3.7,<3.10',
         'djangorestframework-queryfields>=1.0.0',
         'django-rest-swagger>=2.2.0',
@@ -90,8 +90,8 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     dependency_links=[
-        "https://github.com/preseries/django-cassandra-engine/tarball/"
-        "1.5.4-preseries-1#egg=django-cassandra-engine-1.5.4.preseries-1",
+        "https://github.com/buildgroupai/django-cassandra-engine/tarball/"
+        "1.5.4-bgds-1#egg=django-cassandra-engine-1.5.4.bgds-1",
     ],
 )
 

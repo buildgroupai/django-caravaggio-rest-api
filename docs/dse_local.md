@@ -430,7 +430,7 @@ cqlsh> SELECT * FROM weather_sensors WHERE solr_query = 'event_time:[* TO *]';
 
 ## Backup 
 
-We use this utility to backup the data as raw inserts from a keyspace or column families: [cassandradump](https://github.com/preseries/cassandradump).
+We use this utility to backup the data as raw inserts from a keyspace or column families: [cassandradump](https://github.com/buildgroupai/cassandradump).
 
 1- Do a backup of a local cassandra keystore:
 

@@ -64,7 +64,7 @@ class Company(CustomDjangoCassandraModel):
     # A short description about the company
     short_description = columns.Text()
 
-    # The company domain (e.g. preseries.com)
+    # The company domain (e.g. buildgroupai.com)
     domain = columns.Text(max_length=50)
 
     # The date when the company was founded
