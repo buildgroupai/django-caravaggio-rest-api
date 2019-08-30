@@ -50,12 +50,21 @@ $ python manage.py test --testrunner=caravaggio_rest_api.testrunner.TestRunner -
 
 # Install GDAL for Spatial queries
 
-In Sierra MAC OSX:
+In Sierra/Mojave MAC OSX:
 
 ```
 $ sudo chown -R $(whoami) $(brew --prefix)/*
 $ sudo install -d -o $(whoami) -g admin /usr/local/Frameworks
 $ brew install gdal
+
+```
+
+# Install Libev for Cassandra/DSE driver compilation
+
+In Sierra/Mojave MAC OSX:
+
+```
+$ brew install libev
 
 ```
 
