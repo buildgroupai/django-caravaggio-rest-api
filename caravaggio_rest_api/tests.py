@@ -13,6 +13,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from django.test import TestCase
+# from django_cassandra_engine.test import TestCase
 from spitslurp import slurp
 
 
@@ -37,6 +38,9 @@ def _to_plain_dict(dictionary, parent=None):
 
 class CaravaggioBaseTest(TestCase):
     """ Test module for all Caravaggio tests """
+
+    databases = '__all__'
+
     api_client = APIClient()
 
     @classmethod

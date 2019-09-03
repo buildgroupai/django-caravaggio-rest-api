@@ -26,10 +26,12 @@ class TestRunner(DiscoverRunner):
         )
 
     def setup_databases(self, **kwargs):
-        super().setup_databases(**kwargs)
+        old_config = super().setup_databases(**kwargs)
 
         if not self.keep_indexes:
             for alias in connections:
                 engine = get_engine_from_db_alias(alias)
                 if engine == 'django_cassandra_engine':
                     sync(alias)
+
+        return old_config
