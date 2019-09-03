@@ -54,7 +54,7 @@ setup(
     install_requires=[
         'wheel>=0.30.0',
         'django>=2',
-        'django-cassandra-engine==1.5.4.bgds-1',
+        'django-cassandra-engine==1.5.5.bgds-1',
         # 'djangorestframework>=3.7,<3.10',
         'djangorestframework-queryfields>=1.0.0',
         'django-rest-swagger>=2.2.0',
@@ -91,7 +91,7 @@ setup(
     ],
     dependency_links=[
         "https://github.com/buildgroupai/django-cassandra-engine/tarball/"
-        "1.5.4-bgds-1#egg=django-cassandra-engine-1.5.4.bgds-1",
+        "1.5.5-bgds-1#egg=django-cassandra-engine-1.5.5.bgds-1",
     ],
 )
 

@@ -5,7 +5,7 @@ wheel==0.30.0
 #cassandra-driver>=3.15.0
 #dse-driver>=2.6
 #django-cassandra-engine>=1.5
-https://github.com/buildgroupai/django-cassandra-engine/tarball/1.5.4-bgds-1#egg=django-cassandra-engine-1.5.4.bgds-1
+https://github.com/buildgroupai/django-cassandra-engine/tarball/1.5.5-bgds-1#egg=django-cassandra-engine-1.5.5.bgds-1
 
 # Django REST framework
 # djangorestframework>=3.8.2
