@@ -9,7 +9,9 @@ https://github.com/buildgroupai/django-cassandra-engine/tarball/1.5.5-bgds-1#egg
 
 # Django REST framework
 # djangorestframework>=3.8.2
+django-registration>=3.0.1
 djangorestframework-queryfields>=1.0.0
+django-rest-auth>=0.9.5
 django-rest-swagger>=2.2.0
 rest-framework-cache>=0.1
 pyyaml>=5.1.2

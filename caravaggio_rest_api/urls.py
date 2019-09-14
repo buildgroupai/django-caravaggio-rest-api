@@ -18,15 +18,22 @@ from django.conf.urls import url, include
 
 from rest_framework_cache.registry import cache_registry
 from django.contrib import admin
+from django.conf import urls
 
 from rest_framework.documentation import include_docs_urls
 from rest_framework.schemas import get_schema_view
 
-from caravaggio_rest_api.views import CustomAuthToken, get_swagger_view
+from caravaggio_rest_api.users.api.views import \
+    CustomAuthToken, AdminAuthToken
 
-from caravaggio_rest_api.users.urls import urlpatterns as users_urls
+from caravaggio_rest_api.views import get_swagger_view
+
+from caravaggio_rest_api.users.api.urls import urlpatterns as users_urls
 from caravaggio_rest_api.example.company.urls import \
     urlpatterns as company_urls
+
+urls.handler500 = 'rest_framework.exceptions.server_error'
+urls.handler400 = 'rest_framework.exceptions.bad_request'
 
 urlpatterns = [
     # ## DO NOT TOUCH
@@ -37,6 +44,10 @@ urlpatterns = [
 
     # Mechanism for clients to obtain a token given the username and password.
     url(r'^api-token-auth/', CustomAuthToken.as_view()),
+
+    # Mechanism for administrator to obtain a token given
+    # the client id and email.
+    url(r'^admin-token-auth/', AdminAuthToken.as_view()),
 
     # Access to the admin site
     url(r'^admin/', admin.site.urls),

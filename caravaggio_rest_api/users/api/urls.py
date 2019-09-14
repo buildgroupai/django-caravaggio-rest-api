@@ -18,21 +18,30 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from caravaggio_rest_api.users.views import UserViewSet
 from django.conf.urls import url, include
-
 from rest_framework import routers
+
+from .views import UserViewSet, ClientViewSet, OrganizationViewSet
 
 # API v1 Router. Provide an easy way of automatically determining the URL conf.
 
 api_USERS = routers.DefaultRouter()
 
+# Manage external systems
+api_USERS.register(r'client',
+                   ClientViewSet, base_name="client")
+
+# Manage organizations
+api_USERS.register(r'organization',
+                   OrganizationViewSet, base_name="organization")
+
+# Manage users organizations
 api_USERS.register(r'user',
                    UserViewSet, base_name="user")
 
 urlpatterns = [
 
-    # Masters API version
+    # Users API version
     url(r'^', include(api_USERS.urls), name="users-api"),
 
 ]
