@@ -14,6 +14,8 @@ try:
 except ImportError:
     from cassandra.cqlengine.columns import UUID, TimeUUID
 
+from django.conf import settings
+
 from drf_haystack.viewsets import HaystackViewSet
 from haystack.exceptions import SpatialError
 
@@ -79,10 +81,34 @@ class CustomPageNumberPagination(PageNumberPagination):
 class CustomModelViewSet(viewsets.ModelViewSet):
     throttle_scope = ""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for operation in settings.THROTTLE_OPERATIONS.keys():
+            scope = "{0}.{1}".format(self.__class__.__name__, operation)
+            if scope not in settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]:
+                settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"][scope] = \
+                    settings.THROTTLE_OPERATIONS[operation]
+
+    def add_throttle(self, operation, rate):
+        scope = "{}.{}".format(self.__class__.__name__, operation)
+        settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"][scope] = rate
+
     def get_throttles(self):
-        self.throttle_scope = "{0}.{1}". \
-            format(self.__class__.__name__, self.action)
-        LOGGER.debug("Throttling Scope: {}".format(self.throttle_scope))
+        # Only if the scope is not already set
+        # we can do that overwriting the method in a subclass
+        if not self.throttle_scope:
+            if self.action:
+                self.throttle_scope = "{0}.{1}". \
+                    format(self.__class__.__name__, self.action)
+            else:
+                # If there is no action we use the DESTROY by default)
+                # It can happen if we define a detail_route in the ViewSet
+                # and the method (POST, DELETE, etc) used is not the one
+                # associated to the detail method.
+                self.throttle_scope = "{0}.{1}". \
+                    format(self.__class__.__name__, "destroy")
+
+            LOGGER.debug("Throttling Scope: {}".format(self.throttle_scope))
         return super().get_throttles()
 
 
@@ -92,8 +118,29 @@ class CustomHaystackViewSet(HaystackViewSet):
 
     document_uid_field = "id"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for operation in settings.THROTTLE_OPERATIONS.keys():
+            scope = "{0}.{1}".format(self.__class__.__name__, operation)
+            if scope not in settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]:
+                settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"][scope] = \
+                    settings.THROTTLE_OPERATIONS[operation]
+
+    def add_throttle(self, operation, rate):
+        scope = "{}.{}".format(self.__class__.__name__, operation)
+        settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"][scope] = rate
+
     def get_throttles(self):
-        self.throttle_scope = "{0}.{1}". \
-            format(self.__class__.__name__, self.action)
+        if self.action:
+            self.throttle_scope = "{0}.{1}". \
+                format(self.__class__.__name__, self.action)
+        else:
+            # If there is no action we use the DESTROY by default)
+            # It can happen if we define a detail_route in the ViewSet
+            # and the method (POST, DELETE, etc) used is not the one
+            # associated to the detail method.
+            self.throttle_scope = "{0}.{1}". \
+                format(self.__class__.__name__, settings.DELETE_THROTTLE_RATE)
+
         LOGGER.debug("Throttling Scope: {}".format(self.throttle_scope))
         return super().get_throttles()

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'haystack',
     'caravaggio_rest_api',
+    'caravaggio_rest_api.users',
     'caravaggio_rest_api.example.company'
 ]
 
@@ -347,6 +348,28 @@ REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False
 }
 
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USER_EMAIL_FIELD = 'email'
+ACCOUNT_LOGOUT_ON_GET = True
+
+AUTH_USER_MODEL = 'users.CaravaggioUser'
+
+REST_AUTH_SERIALIZERS = {
+    "USER_DETAILS_SERIALIZER":
+        "caravaggio_rest_api.users.serializers."
+        "CaravaggioUserDetailsSerializer",
+}
+REST_AUTH_REGISTER_SERIALIZERS = {
+    "REGISTER_SERIALIZER":
+        "caravaggio_rest_api.users.serializers."
+        "CaravaggioUserRegisterSerializer",
+}
+
 SESSION_ENGINE = 'django_cassandra_engine.sessions.backends.db'
 CASSANDRA_FALLBACK_ORDER_BY_PYTHON = True
 
@@ -363,11 +386,6 @@ PATCH_THROTTLE_RATE = "100/minute"
 METADATA_THROTTLE_RATE = "6000/minute"
 FACETS_THROTTLE_RATE = "6000/minute"
 
-THROTTLED_VIEWS = [
-    "UserViewSet",
-
-    "CompanyViewSet", "CompanySearchViewSet", "CompanyGEOSearchViewSet"]
-
 THROTTLE_OPERATIONS = {
     'retrieve': GET_THROTTLE_RATE,
     'highlight': GET_THROTTLE_RATE,
@@ -380,16 +398,6 @@ THROTTLE_OPERATIONS = {
     'metadata': METADATA_THROTTLE_RATE,
     'facets': FACETS_THROTTLE_RATE
 }
-
-# Configure all the throttles by resource/operation (scopes) if
-# no other throttle has been specified in the DEFAULT_THROTTLE_RATES property
-for view_to_throttle in THROTTLED_VIEWS:
-    for operation in THROTTLE_OPERATIONS.keys():
-        scope = "{0}.{1}".format(view_to_throttle, operation)
-        if scope not in REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]:
-            REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"][scope] = \
-                THROTTLE_OPERATIONS[operation]
-
 
 HAYSTACK_DJANGO_ID_FIELD = "id"
 
