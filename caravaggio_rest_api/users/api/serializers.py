@@ -73,8 +73,14 @@ class CaravaggioOrganizationSerializerV1(DynamicFieldsSerializer):
                   'owner', 'administrators', 'members', 'restricted_members',
                   'number_of_total_members', 'number_of_members',
                   'number_of_administrators', 'number_of_restricted_members',
+                  'all_members',
                   'created', 'updated')
-        read_only_fields = ('id', 'client', 'created', 'updated')
+        read_only_fields = ('id', 'client', 'created', 'updated',
+                            'members', 'restricted_members',
+                            'administrators', 'members', 'restricted_members',
+                            'number_of_total_members', 'number_of_members',
+                            'number_of_administrators',
+                            'number_of_restricted_members')
 
 
 class CaravaggioUserSerializerV1(DynamicFieldsSerializer):

@@ -12,6 +12,7 @@ from django.conf import settings
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from rest_framework import status
 
 from rest_framework.compat import coreapi, coreschema
 from rest_framework.schemas import ManualSchema
@@ -43,10 +44,11 @@ class DynamicFieldsViewSet(CustomModelViewSet):
 
     def get_query_fields(self):
         custom_query_fields = set()
-        raw_fields = self.request.query_params.getlist('fields')
+        if hasattr(self.request, "query_params"):
+            raw_fields = self.request.query_params.getlist('fields')
 
-        for item in raw_fields:
-            custom_query_fields.update(item.split(','))
+            for item in raw_fields:
+                custom_query_fields.update(item.split(','))
 
         return custom_query_fields
 
@@ -80,10 +82,33 @@ class OrganizationViewSet(DynamicFieldsViewSet):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        super().add_throttle("add_administrator", settings.POST_THROTTLE_RATE)
+        super().add_throttle("remove_administrator", settings.DELETE_THROTTLE_RATE)
         super().add_throttle("add_member", settings.POST_THROTTLE_RATE)
         super().add_throttle("remove_member", settings.DELETE_THROTTLE_RATE)
+        super().add_throttle("add_restricted_member", settings.POST_THROTTLE_RATE)
+        super().add_throttle("remove_restricted_member", settings.DELETE_THROTTLE_RATE)
+
+    def destroy(self, request, *args, **kwargs):
+        obj = self.get_object()
+        if obj.all_members.count() > 1:
+            return Response(
+                data={'message': "The organization still has members"},
+                status=status.HTTP_400_BAD_REQUEST)
+        elif obj.organizations.count() == 1:
+            return Response(
+                data={'message': "The owner of the organization doesn't "
+                                 "below to other organization, move it "
+                                 "first."},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        self.perform_destroy(obj)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def _process_add_user(self, collection, users):
+        if isinstance(users, (str,)):
+            users = [users]
+
         organization = self.get_object()
         getattr(organization, collection).add(*CaravaggioUser.objects.filter(
             email__in=users,
@@ -102,32 +127,32 @@ class OrganizationViewSet(DynamicFieldsViewSet):
         serializer = self.get_serializer(organization)
         return Response(serializer.data)
 
-    @action(methods=['delete'], detail=True)
+    @action(methods=['post'], detail=True)
     def remove_administrator(self, request, pk):
         return self._process_remove_user(
             "administrators", request.data['users'])
 
-    @action(methods=['get', 'post', 'put', 'patch'], detail=True)
+    @action(methods=['post'], detail=True)
     def add_administrator(self, request, pk):
         return self._process_add_user(
             "administrators", request.data['users'])
 
-    @action(methods=['delete'], detail=True)
+    @action(methods=['post'], detail=True)
     def remove_member(self, request, pk):
         return self._process_remove_user(
             "members", request.data['users'])
 
-    @action(methods=['get', 'post', 'put', 'patch'], detail=True)
+    @action(methods=['post'], detail=True)
     def add_member(self, request, pk):
         return self._process_add_user(
             "members", request.data['users'])
 
-    @action(methods=['delete'], detail=True)
+    @action(methods=['post'], detail=True)
     def remove_restricted_member(self, request, pk):
         return self._process_remove_user(
             "restricted_members", request.data['users'])
 
-    @action(methods=['get', 'post', 'put', 'patch'], detail=True)
+    @action(methods=['post'], detail=True)
     def add_restricted_member(self, request, pk):
         return self._process_add_user(
             "restricted_members", request.data['users'])
@@ -140,7 +165,7 @@ class OrganizationViewSet(DynamicFieldsViewSet):
                client=self.request.user.client.id)
         else:
             return self.request.user.owner_of.union(
-                self.request.user.administrator_of)
+                self.request.user.administrator_of.all())
 
 
 # ViewSets define the view behavior.
@@ -150,16 +175,24 @@ class UserViewSet(DynamicFieldsViewSet):
     # authentication_classes = (
     #    TokenAuthentication, SessionAuthentication)
 
-    permission_classes = (ClientAdminPermission,)
+    permission_classes = (OrganizationAdminPermission,)
 
     serializer_class = CaravaggioUserSerializerV1
 
     def get_queryset(self):
-        if self.request.user.is_client_staff:
+        if self.request.user.is_staff:
+            return CaravaggioUser.objects.all()
+        elif self.request.user.is_client_staff:
            return CaravaggioUser.objects.filter(
                client=self.request.user.client.id)
-
-        return CaravaggioUser.objects.all()
+        else:
+            # Get the organizations from which the user is owner or admin
+            user_organizations = CaravaggioOrganization.objects.filter(
+                id__in=self.request.user.owner_of.union(
+                    self.request.user.administrator_of.all()).values(
+                    'id').all())
+            return CaravaggioUser.objects.filter(
+                id__in=user_organizations.values("all_members"))
 
 
 class CustomAuthToken(ObtainAuthToken):

@@ -5,12 +5,14 @@
 # any circumstances be used, copied, or distributed.
 import uuid
 
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.dispatch import receiver
 
 from django.db import models
 from django.db.models import PROTECT
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save, \
+    pre_delete, post_delete
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
@@ -148,7 +150,7 @@ class CaravaggioUser(AbstractUser):
 
 
 class CaravaggioOrganization(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, editable=False)
 
     client = models.ForeignKey(CaravaggioClient, on_delete=PROTECT)
 
@@ -170,6 +172,12 @@ class CaravaggioOrganization(models.Model):
         CaravaggioUser, related_name="member_of", blank=True)
     restricted_members = models.ManyToManyField(
         CaravaggioUser, related_name="restricted_member_of", blank=True)
+
+    # maintain a reference to all the members of the organization
+    # useful for queries (QuerySet restricting
+    # by the users in the organization)
+    all_members = models.ManyToManyField(
+        CaravaggioUser, related_name="organizations", blank=True)
 
     number_of_total_members = models.PositiveIntegerField(default=1)
     number_of_administrators = models.PositiveIntegerField(default=0)
@@ -213,10 +221,40 @@ def pre_save_client(
         instance.date_deactivated = timezone.now()
 
 
+# We need to check if the Organization has still members or the owner is not
+# member of other organization
+@receiver(pre_delete, sender=CaravaggioOrganization)
+def pre_delete_organization(
+        sender, instance=None, using=None, **kwargs):
+
+    if instance.all_members.count() > 1:
+        raise ValidationError("The organization still has members")
+    elif instance.organizations.count() == 1:
+        raise ValidationError("The owner of the organization doesn't "
+                              "below to other organization, move it first.")
+
+
+# We need to check if the Organization has still members or the owner is not
+# member of other organization
+@receiver(pre_delete, sender=CaravaggioUser)
+def pre_delete_user(
+        sender, instance=None, using=None, **kwargs):
+
+    for organization in instance.organizations.all():
+        compute_member_counters(organization)
+
+
 # We need to set the new value for the changed_at field
 @receiver(pre_save, sender=CaravaggioOrganization)
 def pre_save_organization(
         sender, instance=None, using=None, update_fields=None, **kwargs):
+
+    created = False
+    if not instance.id:
+        created = True
+        instance.id = uuid.uuid4()
+    else:
+        instance.updated = timezone.now()
 
     if instance.is_active and instance.date_deactivated:
         instance.date_deactivated = None
@@ -224,16 +262,22 @@ def pre_save_organization(
     if not instance.is_active and not instance.date_deactivated:
         instance.date_deactivated = timezone.now()
 
-    compute_member_counters(instance)
+    if not created:
+        compute_member_counters(instance)
+
+
+# We need to set the new value for the changed_at field
+@receiver(post_save, sender=CaravaggioOrganization)
+def post_save_organization(
+        sender, instance=None, created=None, using=None,
+        update_fields=None, **kwargs):
+    if created:
+        instance.all_members.add(instance.owner)
 
 
 def compute_member_counters(instance):
     # Total number of members includes the organization owner
-    instance.number_of_total_members = (
-            instance.administrators.count() +
-            instance.members.count() +
-            instance.restricted_members.count() + 1)
-
+    instance.number_of_total_members = instance.all_members.count()
     instance.number_of_members = instance.members.count()
     instance.number_of_administrators = instance.administrators.count()
     instance.number_of_restricted_members = \
@@ -256,8 +300,10 @@ def m2m_org_administrators_changed(signal, sender, **kwargs):
                     organization.administrators.remove(user)
             organization.members.remove(*users)
             organization.restricted_members.remove(*users)
+            organization.all_members.add(*users)
             compute_member_counters(organization)
         elif action in ('post_remove', 'post_clear'):
+            organization.all_members.remove(*users)
             compute_member_counters(organization)
         else:
             pass
@@ -279,8 +325,10 @@ def m2m_org_members_changed(signal, sender, **kwargs):
                         user not in organization.administrators.all():
                     organization.members.remove(user)
             organization.restricted_members.remove(*users)
+            organization.all_members.add(*users)
             compute_member_counters(organization)
         elif action in ('post_remove', 'post_clear'):
+            organization.all_members.remove(*users)
             compute_member_counters(organization)
         else:
             pass
@@ -302,8 +350,10 @@ def m2m_org_restricted_members_changed(signal, sender, **kwargs):
                         user not in organization.members.all() and \
                         user not in organization.administrators.all():
                     organization.restricted_members.remove(user)
+            organization.all_members.add(*users)
             compute_member_counters(organization)
         elif action in ('post_remove', 'post_clear'):
+            organization.all_members.remove(*users)
             compute_member_counters(organization)
         else:
             pass
