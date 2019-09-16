@@ -7,7 +7,7 @@ import logging
 
 from collections import OrderedDict
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test.client import RequestFactory
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
@@ -16,6 +16,7 @@ from django.test import TestCase
 # from django_cassandra_engine.test import TestCase
 from spitslurp import slurp
 
+from caravaggio_rest_api.users.models import CaravaggioClient
 
 TEST_AVOID_INDEX_SYNC = "CARAVAGGIO_AVOID_INDEX_SYNC"
 
@@ -57,18 +58,33 @@ class CaravaggioBaseTest(TestCase):
     def setUpTestData(cls):
         super().setUpTestData()
 
-        cls.user = User.objects.create(
-            username="admin", password="admin", is_superuser=True)
+        cls.client = cls.create_client(
+            email="tests@buildgroupai.com",
+            name="BuildGroup Data Services Inc."
+        )
+
+        cls.user = cls.create_user(
+            email="testuser@buildgroupai.ai",
+            first_name="Monica",
+            last_name="Bellucci",
+            is_superuser=False,
+            is_client_staff=True,
+            client=cls.client
+        )
+
         cls.force_authenticate(cls.user)
 
     @classmethod
     def load_test_data(cls, file, serializer_class=None,
-                       username="admin", type="JSON"):
+                       username=None, type="JSON"):
 
         logging.info("Loading data from file {}".format(file))
 
+        if not username:
+            username = cls.user.username
+
         request = RequestFactory().get('./fake_path')
-        request.user = User.objects.get(username=username)
+        request.user = get_user_model().objects.get(username=username)
 
         if type == "JSON":
             data = json.loads(slurp(file))
@@ -103,6 +119,33 @@ class CaravaggioBaseTest(TestCase):
             raise AssertionError(
                 "Invalid file type '{0}'. Valid types are: [{1}]".
                 format(type, ", ".join(["JSON", "CSV"])))
+
+    @classmethod
+    def create_client(cls, email, name):
+        default_client = {
+            "email": email,
+            "name": name
+        }
+        return CaravaggioClient.objects.create(**default_client)
+
+    @classmethod
+    def create_user(cls, email,
+                    first_name=None, last_name=None, client=None,
+                    is_superuser=False, is_client_staff=False):
+
+        client = client if client else cls.client
+
+        user_data = {
+            "username": "{}-{}".format(client.id, email),
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "is_superuser": is_superuser,
+            "is_client_staff": is_client_staff,
+            "client": client
+        }
+        return get_user_model().objects.create(**user_data)
+
 
     def assert_equal_dicts(self, dict1, dict2, exclude_keys=None):
         dict1 = _to_plain_dict(dict1)
