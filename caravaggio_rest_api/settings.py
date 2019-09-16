@@ -45,6 +45,13 @@ MANAGERS = ADMINS
 # See https://docs.djangoproject.com/en/1.10/ref/settings/
 ALLOWED_HOSTS = ["*"]
 
+INTERNAL_IPS = []
+
+if DEBUG:
+    INTERNAL_IPS = [
+            '127.0.0.1'
+        ]
+
 SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', "False") == "True"
 USE_X_FORWARDED_HOST = SECURE_SSL_REDIRECT
 
@@ -64,13 +71,17 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_cache',
-    'rest_framework_swagger',
     'drf_yasg',
     'haystack',
     'caravaggio_rest_api',
     'caravaggio_rest_api.users',
     'caravaggio_rest_api.example.company'
 ]
+
+if DEBUG:
+    INSTALLED_APPS += [
+        'django_extensions', 'debug_toolbar'
+    ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -81,6 +92,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+if DEBUG:
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
 
 ROOT_URLCONF = 'caravaggio_rest_api.urls'
 

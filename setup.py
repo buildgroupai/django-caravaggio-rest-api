@@ -55,7 +55,7 @@ setup(
         'wheel>=0.30.0',
         'django>=2,<3',
         'django-registration>=3.0.1',
-        'django-cassandra-engine==1.5.5.bgds-1',
+        'django-cassandra-engine==1.5.5-bgds-1',
         # 'djangorestframework>=3.7,<3.10',
         'djangorestframework-queryfields>=1.0.0',
         'django-rest-auth>=0.9.5',
@@ -71,6 +71,17 @@ setup(
         'pysolr>=3.7.0',
         'solrq>=1.1.1',
         'fuzzywuzzy>=0.17'],
+    tests_require=[
+        'spitslurp>=0.4',
+
+        'django-debug-toolbar>=1.10.1',
+        'django-extensions>=2.1.3',
+
+        'psycopg2-binary>=2.7.5',
+
+        #cassandra-driver>=3.15.0
+        'dse-driver>=2.6',
+    ],
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
     zip_safe=False,
     classifiers=[
@@ -93,8 +104,8 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     dependency_links=[
-        "https://github.com/buildgroupai/django-cassandra-engine/tarball/"
-        "1.5.5-bgds-1#egg=django-cassandra-engine-1.5.5.bgds-1",
+        "git+ssh://git@github.com/buildgroupai/django-cassandra-engine.git@bgds-1#"
+        "egg=django-cassandra-engine-1.5.5-bgds-1",
     ],
 )
 
