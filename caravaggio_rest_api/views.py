@@ -3,49 +3,23 @@
 # All rights reserved.
 from __future__ import unicode_literals
 
-from rest_framework.response import Response
-from rest_framework import exceptions
+from django.conf import settings
+
 from rest_framework.permissions import AllowAny
-from rest_framework.renderers import CoreJSONRenderer
-from rest_framework.schemas import SchemaGenerator
 
-from rest_framework.views import APIView
-from rest_framework import renderers
-
-from rest_framework_swagger import renderers
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
 
-def get_swagger_view(title=None, url=None, patterns=None, urlconf=None):
-    """
-    Returns schema view which renders Swagger/OpenAPI.
-    """
-    class SwaggerSchemaView(APIView):
-        _ignore_model_permissions = True
-        exclude_from_schema = True
-        permission_classes = [AllowAny]
-        renderer_classes = [
-            CoreJSONRenderer,
-            renderers.OpenAPIRenderer,
-            renderers.SwaggerUIRenderer
-        ]
-
-        def get(self, request):
-            generator = SchemaGenerator(
-                title=title,
-                url=url,
-                patterns=patterns,
-                urlconf=urlconf
-            )
-
-            # Showing all the endpoints, no mather the user permissions
-            # schema = generator.get_schema(request=request)
-            schema = generator.get_schema()
-
-            if not schema:
-                raise exceptions.ValidationError(
-                    'The schema generator did not return a schema Document'
-                )
-
-            return Response(schema)
-
-    return SwaggerSchemaView.as_view()
+schema_view = get_schema_view(
+   openapi.Info(
+      title=settings.CARAVAGGIO_API_TITLE,
+      default_version=settings.CARAVAGGIO_API_VERSION,
+      description=settings.CARAVAGGIO_API_DESCRIPTION,
+      terms_of_service=settings.CARAVAGGIO_API_TERMS_URL,
+      contact=openapi.Contact(email=settings.CARAVAGGIO_API_CONTACT),
+      license=openapi.License(name=settings.CARAVAGGIO_API_LICENSE),
+   ),
+   public=True,
+   permission_classes=(AllowAny,),
+)

@@ -12,6 +12,12 @@ try:
 except ImportError:
     from cassandra import ConsistencyLevel
 
+CARAVAGGIO_API_TITLE = "Caravaggio API"
+CARAVAGGIO_API_VERSION = "v1"
+CARAVAGGIO_API_DESCRIPTION = "Example API for Caravaggio RESTful applications"
+CARAVAGGIO_API_TERMS_URL = "https://www.google.com/policies/terms/"
+CARAVAGGIO_API_CONTACT = "contact@buildgroupai.com"
+CARAVAGGIO_API_LICENSE = "BSD License"
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -59,6 +65,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_cache',
     'rest_framework_swagger',
+    'drf_yasg',
     'haystack',
     'caravaggio_rest_api',
     'caravaggio_rest_api.users',

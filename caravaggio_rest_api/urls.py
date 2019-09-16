@@ -20,15 +20,13 @@ from rest_framework_cache.registry import cache_registry
 from django.contrib import admin
 from django.conf import urls
 
-from rest_framework.documentation import include_docs_urls
-from rest_framework.schemas import get_schema_view
-
 from caravaggio_rest_api.users.api.views import \
     CustomAuthToken, AdminAuthToken
 
-from caravaggio_rest_api.views import get_swagger_view
+from caravaggio_rest_api.views import schema_view
 
 from caravaggio_rest_api.users.api.urls import urlpatterns as users_urls
+
 from caravaggio_rest_api.example.company.urls import \
     urlpatterns as company_urls
 
@@ -37,6 +35,15 @@ urls.handler400 = 'rest_framework.exceptions.bad_request'
 
 urlpatterns = [
     # ## DO NOT TOUCH
+
+    # API Swagger documentation
+    url(r'^swagger(?P<format>\.json|\.yaml)$',
+        schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    url(r'^swagger/$',
+        schema_view.with_ui('swagger', cache_timeout=0),
+        name='schema-swagger-ui'),
+    url(r'^redoc/$',
+        schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
     # Django REST Framework auth urls
     url(r'^api-auth/',
@@ -52,26 +59,13 @@ urlpatterns = [
     # Access to the admin site
     url(r'^admin/', admin.site.urls),
 
-    # Django Rest Framework Swagger documentation
-    url(r'^schema/$',
-        get_swagger_view(title='API Documentation')),
-
-    url(r'^api-schema/companies/$',
-        get_schema_view(title="Apian Companies API",
-                        patterns=[url(r'^companies/',
-                                      include(company_urls))])),
-
-    # Django Rest Framework native documentation
-    url(r'^docs/',
-        include_docs_urls(title='API Documentation')),
+    # Users API version
+    url(r'^users/', include(users_urls)),
 
     # ## END DO NOT TOUCH
 
     # API
     url(r'^companies/', include(company_urls)),
-
-    # Users API version
-    url(r'^users/', include(users_urls)),
 
     # Default API version
     # url(r'^$', RedirectView.as_view(url='zion/')),
