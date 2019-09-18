@@ -85,8 +85,11 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
         results = super()._process_results(
             raw_results, highlight, result_class, distance_point)
 
-        results["qtime"] = raw_results.qtime
-        if "params" in raw_results.raw_response['responseHeader']:
+        if hasattr(raw_results, 'qtime'):
+            results["qtime"] = raw_results.qtime
+
+        if hasattr(raw_results, 'raw_response') and \
+                "params" in raw_results.raw_response['responseHeader']:
             results["params"] = \
                 raw_results.raw_response['responseHeader']['params']
 
