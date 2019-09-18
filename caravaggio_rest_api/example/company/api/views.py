@@ -1,27 +1,21 @@
 # -*- coding: utf-8 -*
-from drf_haystack.filters import HaystackFilter, HaystackBoostFilter, \
-    HaystackGEOSpatialFilter, HaystackFacetFilter
-
-
-from caravaggio_rest_api.drf_haystack.filters import \
-    HaystackOrderingFilter
-
 from caravaggio_rest_api.drf_haystack.viewsets import \
-    CustomModelViewSet, CustomHaystackViewSet
+    CaravaggioCassandraModelViewSet, \
+    CaravaggioHaystackGEOSearchViewSet, \
+    CaravaggioHaystackFacetSearchViewSet
 
 # from rest_framework.authentication import \
 #    TokenAuthentication, SessionAuthentication
 # from rest_framework.permissions import IsAuthenticated
 
-from drf_haystack import mixins
-
 from caravaggio_rest_api.example.company.api.serializers import \
     CompanyFacetSerializerV1, CompanyGEOSearchSerializerV1
 from caravaggio_rest_api.example.company.models import Company
-from .serializers import CompanySerializerV1, CompanySearchSerializerV1
+from caravaggio_rest_api.example.company.api.serializers import \
+    CompanySerializerV1, CompanySearchSerializerV1
 
 
-class CompanyViewSet(CustomModelViewSet):
+class CompanyViewSet(CaravaggioCassandraModelViewSet):
     queryset = Company.objects.all()
 
     # Defined in the settings as default authentication classes
@@ -33,15 +27,8 @@ class CompanyViewSet(CustomModelViewSet):
 
     serializer_class = CompanySerializerV1
 
-    filter_fields = ("_id", "created_at", "updated_at", "foundation_date",
-                     "country_code", "stock_symbol")
 
-
-class CompanySearchViewSet(mixins.FacetMixin, CustomHaystackViewSet):
-
-    filter_backends = [
-        HaystackFilter, HaystackBoostFilter,
-        HaystackFacetFilter, HaystackOrderingFilter]
+class CompanySearchViewSet(CaravaggioHaystackFacetSearchViewSet):
 
     # `index_models` is an optional list of which models you would like
     #  to include in the search result. You might have several models
@@ -67,17 +54,12 @@ class CompanySearchViewSet(mixins.FacetMixin, CustomHaystackViewSet):
     # the search requests adding fields like text, autocomplete, score, etc.
     results_serializer_class = CompanySerializerV1
 
-    document_uid_field = "id"
-
-    ordering_fields = ("_id", "created_at", "updated_at", "foundation_date",
+    ordering_fields = ("_id",
+                       "created_at", "updated_at", "foundation_date",
                        "country_code", "stock_symbol")
 
 
-class CompanyGEOSearchViewSet(CustomHaystackViewSet):
-
-    filter_backends = [
-        HaystackFilter, HaystackBoostFilter,
-        HaystackGEOSpatialFilter, HaystackOrderingFilter]
+class CompanyGEOSearchViewSet(CaravaggioHaystackGEOSearchViewSet):
 
     # `index_models` is an optional list of which models you would like
     #  to include in the search result. You might have several models
@@ -101,7 +83,6 @@ class CompanyGEOSearchViewSet(CustomHaystackViewSet):
     # the search requests adding fields like text, autocomplete, score, etc.
     results_serializer_class = CompanySerializerV1
 
-    document_uid_field = "id"
-
-    ordering_fields = ("_id", "created_at", "updated_at", "foundation_date",
+    ordering_fields = ("_id",
+                       "created_at", "updated_at", "foundation_date",
                        "country_code", "stock_symbol")

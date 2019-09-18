@@ -24,7 +24,7 @@ from caravaggio_rest_api.users.api.permissions import \
 #    TokenAuthentication, SessionAuthentication
 # from rest_framework.permissions import IsAuthenticated
 
-from caravaggio_rest_api.drf_haystack.viewsets import CustomModelViewSet
+from caravaggio_rest_api.drf.viewsets import CaravaggioDjangoModelViewSet
 
 from caravaggio_rest_api.users.models import \
     CaravaggioUser, CaravaggioClient, CaravaggioOrganization
@@ -37,28 +37,8 @@ from caravaggio_rest_api.users.api.permissions import \
 LOGGER = logging.getLogger(__name__)
 
 
-class DynamicFieldsViewSet(CustomModelViewSet):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def get_query_fields(self):
-        custom_query_fields = set()
-        if hasattr(self.request, "query_params"):
-            raw_fields = self.request.query_params.getlist('fields')
-
-            for item in raw_fields:
-                custom_query_fields.update(item.split(','))
-
-        return custom_query_fields
-
-    def get_serializer(self, *args, **kwargs):
-        return super().get_serializer(
-            *args, fields=self.get_query_fields(), **kwargs)
-
-
 # ViewSets define the view behavior.
-class ClientViewSet(DynamicFieldsViewSet):
+class ClientViewSet(CaravaggioDjangoModelViewSet):
     queryset = CaravaggioClient.objects.all()
 
     # authentication_classes = (
@@ -68,9 +48,17 @@ class ClientViewSet(DynamicFieldsViewSet):
 
     serializer_class = CaravaggioClientSerializerV1
 
+    filterset_fields = {
+        'id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
+        'email': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
+        'name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
+        'date_joined': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
+        'date_deactivated': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL
+    }
+
 
 # ViewSets define the view behavior of an Organization.
-class OrganizationViewSet(DynamicFieldsViewSet):
+class OrganizationViewSet(CaravaggioDjangoModelViewSet):
     queryset = CaravaggioOrganization.objects.all()
 
     # authentication_classes = (
@@ -82,12 +70,18 @@ class OrganizationViewSet(DynamicFieldsViewSet):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        super().add_throttle("add_administrator", settings.POST_THROTTLE_RATE)
-        super().add_throttle("remove_administrator", settings.DELETE_THROTTLE_RATE)
-        super().add_throttle("add_member", settings.POST_THROTTLE_RATE)
-        super().add_throttle("remove_member", settings.DELETE_THROTTLE_RATE)
-        super().add_throttle("add_restricted_member", settings.POST_THROTTLE_RATE)
-        super().add_throttle("remove_restricted_member", settings.DELETE_THROTTLE_RATE)
+        super().add_throttle(
+            "add_administrator", settings.POST_THROTTLE_RATE)
+        super().add_throttle(
+            "remove_administrator", settings.DELETE_THROTTLE_RATE)
+        super().add_throttle(
+            "add_member", settings.POST_THROTTLE_RATE)
+        super().add_throttle(
+            "remove_member", settings.DELETE_THROTTLE_RATE)
+        super().add_throttle(
+            "add_restricted_member", settings.POST_THROTTLE_RATE)
+        super().add_throttle(
+            "remove_restricted_member", settings.DELETE_THROTTLE_RATE)
 
     def destroy(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -169,7 +163,7 @@ class OrganizationViewSet(DynamicFieldsViewSet):
 
 
 # ViewSets define the view behavior.
-class UserViewSet(DynamicFieldsViewSet):
+class UserViewSet(CaravaggioDjangoModelViewSet):
     queryset = CaravaggioUser.objects.all()
 
     # authentication_classes = (
@@ -178,6 +172,29 @@ class UserViewSet(DynamicFieldsViewSet):
     permission_classes = (OrganizationAdminPermission,)
 
     serializer_class = CaravaggioUserSerializerV1
+
+    filterset_fields = {
+        'id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
+        'email': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
+        'first_name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
+        'last_name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
+        'date_joined': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
+        'is_active': CaravaggioDjangoModelViewSet.BOOL_OPERATORS_ALL,
+        'is_superuser': CaravaggioDjangoModelViewSet.BOOL_OPERATORS_ALL,
+        'is_staff': CaravaggioDjangoModelViewSet.BOOL_OPERATORS_ALL,
+        'is_client_staff': CaravaggioDjangoModelViewSet.BOOL_OPERATORS_ALL,
+        'client': CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
+        'client__name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
+        'client__id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL
+    }
+
+    # Example of query
+    # http://localhost:8001/users/user/?
+    #   first_name__regex=.*.vi*.
+    #   &client__name__icontains=buil
+    #   &date_joined__year=2019
+    #   &client=62df90ca-ca50-4bb8-aab7-a2159409cf67
+    #   &is_active=true
 
     def get_queryset(self):
         if self.request.user.is_staff:
