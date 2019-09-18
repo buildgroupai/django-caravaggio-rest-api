@@ -6,6 +6,7 @@ import csv
 import logging
 
 from collections import OrderedDict
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test.client import RequestFactory
@@ -64,10 +65,11 @@ class CaravaggioBaseTest(TestCase):
         )
 
         cls.user = cls.create_user(
-            email="testuser@buildgroupai.ai",
-            first_name="Monica",
-            last_name="Bellucci",
-            is_superuser=False,
+            email="admin@buildgroupai.ai",
+            first_name="Admin",
+            last_name="BGDS",
+            is_superuser=True,
+            is_staff=True,
             is_client_staff=True,
             client=cls.client
         )
@@ -131,7 +133,7 @@ class CaravaggioBaseTest(TestCase):
     @classmethod
     def create_user(cls, email,
                     first_name=None, last_name=None, client=None,
-                    is_superuser=False, is_client_staff=False):
+                    is_superuser=False, is_staff=False, is_client_staff=False):
 
         client = client if client else cls.client
 
@@ -141,11 +143,16 @@ class CaravaggioBaseTest(TestCase):
             "first_name": first_name,
             "last_name": last_name,
             "is_superuser": is_superuser,
+            "is_staff": is_superuser,
             "is_client_staff": is_client_staff,
             "client": client
         }
         return get_user_model().objects.create(**user_data)
 
+    def _steps(self):
+        for name in dir(self):  # dir() result is implicitly sorted
+            if name.startswith("step"):
+                yield name, getattr(self, name)
 
     def assert_equal_dicts(self, dict1, dict2, exclude_keys=None):
         dict1 = _to_plain_dict(dict1)
@@ -157,8 +164,25 @@ class CaravaggioBaseTest(TestCase):
         intersect_keys = d1_keys.intersection(d2_keys)
         added = d1_keys - d2_keys
         removed = d2_keys - d1_keys
-        modified = {o: (dict1[o], dict2[o])
-                    for o in intersect_keys if dict1[o] != dict2[o]}
+        modified = {}
+        for o in intersect_keys:
+            val1 = dict1[o]
+            val2 = dict2[o]
+
+            if isinstance(val1, (float,)) or \
+                    isinstance(val2, (float,)):
+                dec1 = Decimal(val1)
+                dec2 = Decimal(val2)
+
+                dec1_exp = abs(dec1.as_tuple().exponent)
+                dec2_exp = abs(dec2.as_tuple().exponent)
+
+                val1 = round(dec1, min(dec1_exp, dec2_exp, 5))
+                val2 = round(dec2, min(dec1_exp, dec2_exp, 5))
+
+            if val1 != val2:
+                modified[o] = (val1, val2)
+
         same = set(o for o in intersect_keys if dict1[o] == dict2[o])
 
         self.assertEqual(len(added), 0, "Keys were added! {}".format(added))
@@ -166,3 +190,12 @@ class CaravaggioBaseTest(TestCase):
                          format(removed))
         self.assertEqual(len(modified), 0, "Values are not identical! {}".
                          format(modified))
+
+    def test_steps(self):
+        for name, step in self._steps():
+            try:
+                logging.info("Starting step: {}".format(step))
+                step()
+                logging.info("Successfully ended step: {}".format(step))
+            except Exception as e:
+                self.fail("{} failed ({}: {})".format(step, type(e), e))

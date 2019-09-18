@@ -13,7 +13,6 @@ from caravaggio_rest_api.example.company.models import Company
 
 from rest_framework import status
 from django.urls import reverse
-from django.contrib.auth.models import User
 
 from caravaggio_rest_api.utils import default
 
@@ -55,7 +54,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             load_test_data("{}/companies.json".format(current_path),
                            CompanySerializerV1)
 
-    def test_create_companies(self):
+    def step1_create_companies(self):
         for company in self.companies:
             _logger.info("POST Company: {}".format(company["name"]))
             response = self.api_client.post(reverse("company-list"),
@@ -72,7 +71,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         # We need to give time for the next search tests
         time.sleep(0.5)
 
-    def test_get_companies(self):
+    def step2_get_companies(self):
         for index, company_id in enumerate(self.persisted_companies):
             original_company = self.companies[index]
             path = "{0}{1}/".format(reverse("company-list"), company_id)
@@ -85,7 +84,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
                 response.data, original_company,
                 ["_id", "created_at", "updated_at"])
 
-    def test_search_text(self):
+    def step3_search_text(self):
         """
         We search any company that contains a text in the text field, that is
         a field that concentrates all the textual fields
@@ -103,7 +102,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             response.data["results"][0], self.companies[1],
             ["_id", "created_at", "updated_at", "score"])
 
-    def test_search_specialties(self):
+    def step4_search_specialties(self):
         """"
         Get companies that have "Internet" in their specialties.
 
@@ -133,7 +132,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             response.data["results"][0], self.companies[1],
             ["_id", "created_at", "updated_at", "score"])
 
-    def test_search_geo(self):
+    def step5_search_geo(self):
         """"
         Will get all the companies within 10 km from the point
              with longitude -123.25022 and latitude 44.59641.
@@ -150,7 +149,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             response.data["results"][0], self.companies[1],
             ["_id", "created_at", "updated_at", "score"])
 
-    def test_search_facets(self):
+    def step6_search_facets(self):
         """"
         Will get all the companies within 10 km from the point
              with longitude -123.25022 and latitude 44.59641.
@@ -225,7 +224,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             response.data["dates"]["foundation_date"][84]["text"],
             get_date_bucket_text(start_date, 84, 6))
 
-    def test_search_facets_ranges(self):
+    def step7_search_facets_ranges(self):
         """"
         Let's change the foundation_date facet range by all the years from
         1st Jan 2010 til today. Total: 8 years/buckets
@@ -245,7 +244,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         self.assertTrue("2011-01-01T00:00:00Z" in buckets)
         self.assertEqual(buckets["2011-01-01T00:00:00Z"], 1)
 
-    def test_search_facets_narrow(self):
+    def step8_search_facets_narrow(self):
         """"
         Drill down when selection facets
         """
