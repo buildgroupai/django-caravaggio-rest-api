@@ -56,7 +56,8 @@ setup(
         'django>=2,<3',
         'django-registration>=3.0.1',
         'django-cassandra-engine==1.5.5-bgds-1',
-        # 'djangorestframework>=3.7,<3.10',
+        'djangorestframework-filters==1.0.0.dev0',
+        # 'djangorestframework>=3.7,<3.10', # Imposed by DRF-Haystack
         'djangorestframework-queryfields>=1.0.0',
         'django-rest-auth>=0.9.5',
         'drf-yasg>=1.16.1',
