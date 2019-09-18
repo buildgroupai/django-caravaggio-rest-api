@@ -11,6 +11,7 @@ django-registration>=3.0.1
 # djangorestframework>=3.7,<3.10
 djangorestframework-queryfields>=1.0.0
 django-rest-auth>=0.9.5
+djangorestframework-filters==1.0.0.dev0
 drf-yasg>=1.16.1
 packaging>=19.1
 rest-framework-cache>=0.1
