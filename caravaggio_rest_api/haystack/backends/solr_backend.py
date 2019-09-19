@@ -394,7 +394,7 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
             index_fieldname = ''
         else:
             index_fieldname = \
-                u'%s:' % connections[self._using].\
+                u'%s' % connections[self._using].\
                 get_unified_index().get_index_fieldname(field)
 
         filter_types = {
@@ -469,7 +469,22 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
             if not query_frag.startswith('(') and not query_frag.endswith(')'):
                 query_frag = "(%s)" % query_frag
 
-        return u"%s%s" % (index_fieldname, query_frag)
+        # Check if the field is making a reference to a Tuple/UDF object
+
+        # Obtain the list of searchable fields available at the Index
+        # class associated to the model
+        searchable_fields = connections[self._using]. \
+            get_unified_index().all_searchfields()
+
+        # Get the model attribute that is connected to the current
+        # index search field.
+        model_attr = searchable_fields[index_fieldname].model_attr
+
+        if '.' in model_attr:
+            return u"{{!tuple v='{field}:{value}'}}".format(
+                field=model_attr, value=query_frag)
+        else:
+            return u"%s:%s" % (index_fieldname, query_frag)
 
     def build_params(self, spelling_query=None, **kwargs):
         """Generates a list of params to use when searching."""
