@@ -111,7 +111,10 @@ class CompanySearchSerializerV1(CustomHaystackSerializer,
             "name", "short_description", "foundation_date",
             "last_round", "round_notes",
             "country_code", "stock_symbol", "domain",
-            "address", "latitude", "longitude",
+            "address_street_type", "address_street_name",
+            "address_street_number", "address_state", "address_region",
+            "address_city", "address_country_code", "address_zipcode",
+            "latitude", "longitude",
             "contact_email", "founders", "specialties",
             "latest_twitter_followers", "websites", "crawler_config",
             "extra_data",
@@ -152,7 +155,10 @@ class CompanyGEOSearchSerializerV1(CustomHaystackSerializer,
             "name", "short_description", "foundation_date",
             "last_round", "round_notes",
             "country_code", "stock_symbol", "domain",
-            "address", "latitude", "longitude",
+            "address_street_type", "address_street_name",
+            "address_street_number", "address_state", "address_region",
+            "address_city", "address_country_code", "address_zipcode",
+            "latitude", "longitude",
             "contact_email", "founders", "specialties",
             "latest_twitter_followers", "websites", "crawler_config",
             "extra_data",
@@ -173,11 +179,24 @@ class CompanyFacetSerializerV1(HaystackFacetSerializer):
         fields = ["foundation_date", "country_code", "stock_symbol",
                   "founders", "specialties", "last_round"]
 
+        # IMPORTANT
+        # Faceting on Tuple fields is not supported
+        # "address_street_type", "address_state", "address_region",
+        # "address_city", "address_country_code", "address_zipcode"
+
         field_options = {
             "country_code": {},
             "stock_symbol": {},
             "founders": {},
             "specialties": {},
+            # IMPORTANT
+            # Faceting on Tuple fields is not supported
+            # "address_street_type": {},
+            # "address_state": {},
+            # "address_region": {},
+            # "address_city": {},
+            # "address_country_code": {},
+            # "address_zipcode": {},
             "foundation_date": {
                 "start_date": datetime.now() - timedelta(days=50 * 365),
                 "end_date": datetime.now(),
