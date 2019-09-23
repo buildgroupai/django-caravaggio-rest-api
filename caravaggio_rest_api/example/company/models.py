@@ -2,7 +2,7 @@
 import logging
 import uuid
 
-from datetime import datetime
+from django.utils import timezone
 
 try:
     from dse.cqlengine import columns, ValidationError
@@ -51,8 +51,8 @@ class Company(CustomDjangoCassandraModel):
     user = columns.Text(primary_key=True)
 
     # When was created the entity and the last modification date
-    created_at = columns.DateTime(default=datetime.utcnow)
-    updated_at = columns.DateTime(default=datetime.utcnow)
+    created_at = columns.DateTime(default=timezone.now)
+    updated_at = columns.DateTime(default=timezone.now)
 
     # Controls if the entity is active or has been deleted
     is_deleted = columns.Boolean(default=False)
@@ -131,6 +131,8 @@ class Company(CustomDjangoCassandraModel):
 @receiver(pre_save, sender=Company)
 def pre_save_company(
         sender, instance=None, using=None, update_fields=None, **kwargs):
+    instance.updated_at = timezone.now()
+
     if instance.longitude and instance.latitude:
         instance.coordinates = "{0},{1}".format(
             instance.latitude, instance.longitude)
