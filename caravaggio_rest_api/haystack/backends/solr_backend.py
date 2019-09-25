@@ -480,7 +480,7 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
         # index search field.
         model_attr = searchable_fields[index_fieldname].model_attr
 
-        if '.' in model_attr:
+        if model_attr and '.' in model_attr:
             return u"{{!tuple v='{field}:{value}'}}".format(
                 field=model_attr, value=query_frag)
         else:
