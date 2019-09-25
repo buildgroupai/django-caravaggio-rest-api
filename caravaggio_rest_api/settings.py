@@ -39,6 +39,9 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "dev@domain.com")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "***")
+
 # SECURITY WARNING: App Engine's security features ensure that it is safe to
 # have ALLOWED_HOSTS = ['*'] when the app is deployed. If you deploy a Django
 # app not on App Engine, make sure to set an appropriate host here.
