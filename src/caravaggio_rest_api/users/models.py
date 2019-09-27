@@ -188,8 +188,8 @@ class CaravaggioOrganization(models.Model):
         _('active'),
         default=True,
         help_text=_(
-            'Designates whether this organization should be treated as active. '
-            'Unselect this instead of deleting organizations.'
+            'Designates whether this organization should be treated as active.'
+            ' Unselect this instead of deleting organizations.'
         ),
     )
 

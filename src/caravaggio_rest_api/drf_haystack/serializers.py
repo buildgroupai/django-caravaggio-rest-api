@@ -11,8 +11,7 @@ from rest_framework_cache.serializers import CachedSerializerMixin
 from rest_framework_cache.settings import api_settings
 
 from caravaggio_rest_api import fields as dse_fields
-from caravaggio_rest_api.dse.models import KeyEncodedMap
-from caravaggio_rest_api.dse.columns import Decimal
+from caravaggio_rest_api.dse.columns import Decimal, KeyEncodedMap
 from caravaggio_rest_api.utils import get_primary_keys_values
 
 try:

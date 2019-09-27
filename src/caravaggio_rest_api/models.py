@@ -2,11 +2,16 @@
 # Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
 from __future__ import unicode_literals
+import logging
 
 from django.conf import settings
 from django.db.models.signals import post_save
-from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
+
+from django.dispatch import receiver
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 # Create a token for every user we create

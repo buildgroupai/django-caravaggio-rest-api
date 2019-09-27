@@ -108,7 +108,7 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
 
                     for field_name in fields_name:
                         json_facets["{0}_{1}".
-                                format(facet_name, field_name)] = \
+                                    format(facet_name, field_name)] = \
                             [(bucket["val"], bucket[field_name])
                                 for bucket in buckets["buckets"]]
 

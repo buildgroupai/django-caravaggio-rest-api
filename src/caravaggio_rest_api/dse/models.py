@@ -42,37 +42,6 @@ class ExactOperator(BaseWhereOperator):
     cql_symbol = '='
 
 
-class KeyEncodedMap(columns.Map):
-    """
-    This type of Map is needed if we want to be able to index the Map columns
-    into the Search index. The search index creates a dynamic field that
-    looks for any value with name <db_field_name>_*
-    """
-
-    def __keyencode__(self, key):
-        return "{0}_{1}".format(self.column_name, str(key))
-
-    def __keydecode__(self, key):
-        prefix = "{}_".format(self.column_name)
-        if key.startswith(prefix):
-            return key[len(prefix):]
-        return key
-
-    def to_python(self, value):
-        if value is None:
-            return {}
-        if value is not None:
-            return dict((self.key_col.to_python(self.__keydecode__(k)),
-                         self.value_col.to_python(v))
-                        for k, v in value.items())
-
-    def to_database(self, value):
-        if value is None:
-            return None
-        return dict((self.key_col.to_database(self.__keyencode__(k)),
-                     self.value_col.to_database(v)) for k, v in value.items())
-
-
 class CustomDjangoCassandraModelMetaClass(DjangoCassandraModelMetaClass):
     """
     Fix of bug in the original DjangoCassandraModelMetaClass. They commented

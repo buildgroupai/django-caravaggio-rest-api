@@ -85,10 +85,10 @@ class GetAllCompanyTest(CaravaggioBaseTest):
                 ["_id", "created_at", "updated_at"])
 
     def step3_search_text(self):
-        """
-        We search any company that contains a text in the text field, that is
-        a field that concentrates all the textual fields
+        """ We search any company that contains a text in the text field,
+        that is a field that concentrates all the textual fields
         (corpus of the company)
+
         """
         path = "{0}?text=distributed".format(reverse("company-search-list"))
         _logger.info("Path: {}".format(path))
@@ -103,11 +103,11 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             ["_id", "created_at", "updated_at", "score"])
 
     def step4_search_specialties(self):
-        """"
-        Get companies that have "Internet" in their specialties.
+        """" Get companies that have "Internet" in their specialties.
 
         And get companies that have specialties that contains "*Internet*"
         in their name but do not have "Hardware"
+
         """
         path = "{0}?specialties=Internet".\
             format(reverse("company-search-list"))
@@ -133,9 +133,9 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             ["_id", "created_at", "updated_at", "score"])
 
     def step5_search_geo(self):
-        """"
-        Will get all the companies within 10 km from the point
+        """" Will get all the companies within 10 km from the point
              with longitude -123.25022 and latitude 44.59641.
+
         """
         path = "{0}?km=10&from=44.59641,-123.25022".\
             format(reverse("company-geosearch-list"))
@@ -150,9 +150,9 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             ["_id", "created_at", "updated_at", "score"])
 
     def step6_search_facets(self):
-        """"
-        Will get all the companies within 10 km from the point
+        """" Will get all the companies within 10 km from the point
              with longitude -123.25022 and latitude 44.59641.
+
         """
         path = "{0}facets/?country_code=limit:1".\
             format(reverse("company-search-list"))
@@ -209,7 +209,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         expected_buckets = math.ceil((r.years * 12 + r.months) / 6)
 
         self.assertIn(len(response.data["dates"]["foundation_date"]),
-                         [expected_buckets, expected_buckets+1])
+                      [expected_buckets, expected_buckets+1])
 
         def get_date_bucket_text(start_date, bucket_num, months_bw_buckets):
             return (start_date + relativedelta.relativedelta(
@@ -225,9 +225,9 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             get_date_bucket_text(start_date, 84, 6))
 
     def step7_search_facets_ranges(self):
-        """"
-        Let's change the foundation_date facet range by all the years from
+        """" Let's change the foundation_date facet range by all the years from
         1st Jan 2010 til today. Total: 8 years/buckets
+
         """
         path = "{0}facets/?" \
                "foundation_date=start_date:20th May 2010," \
@@ -245,8 +245,8 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         self.assertEqual(buckets["2011-01-01T00:00:00Z"], 1)
 
     def step8_search_facets_narrow(self):
-        """"
-        Drill down when selection facets
+        """" Drill down when selection facets
+
         """
         path = "{0}facets/?selected_facets=specialties_exact:Hardware&" \
                "selected_facets=country_code_exact:USA".\

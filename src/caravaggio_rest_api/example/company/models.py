@@ -13,8 +13,11 @@ except ImportError:
     from cassandra.cqlengine.columns import UserDefinedType
     from cassandra.cqlengine.usertype import UserType
 
+from caravaggio_rest_api.dse.columns import \
+    KeyEncodedMap
+
 from caravaggio_rest_api.dse.models import \
-    CustomDjangoCassandraModel, KeyEncodedMap
+    CustomDjangoCassandraModel
 
 from django.dispatch import receiver
 from django.db.models.signals import pre_save

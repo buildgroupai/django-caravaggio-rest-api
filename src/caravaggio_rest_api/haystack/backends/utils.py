@@ -76,9 +76,11 @@ class CaravaggioSearchPaginator(object):
                    'true' == self.search_kwargs[str('group')]
 
         if is_group:
-            return self.results["groups"] if self.results is not None else None
+            return self.results["groups"] \
+                if self.results is not None else None
         else:
-            return self.results["results"] if self.results is not None else None
+            return self.results["results"] \
+                if self.results is not None else None
 
     def get_raw_results(self):
         return self.results
@@ -176,7 +178,7 @@ def is_valid_uuid(uuid_to_test, version=4):
     """
     try:
         uuid_obj = UUID(uuid_to_test, version=version)
-    except:
+    except ValueError:
         return False
 
     return str(uuid_obj) == uuid_to_test

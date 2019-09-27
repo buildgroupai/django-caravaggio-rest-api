@@ -10,10 +10,13 @@ from rest_framework import filters
 from rest_framework_filters.backends import \
     ComplexFilterBackend
 
-LOGGER = logging.getLogger("caravaggio_rest_api")
+from caravaggio_rest_api.drf.mixins import RequestLogViewMixin
 
 
-class CaravaggioThrottledViewSet:
+LOGGER = logging.getLogger(__name__)
+
+
+class CaravaggioThrottledViewSet(object):
     """ One of the hidden functionalities is the ability to automatically
     register the default Throttle configurations for all the default
     operations.
@@ -67,7 +70,9 @@ class CaravaggioThrottledViewSet:
 
 
 class CaravaggioDjangoModelViewSet(
-    viewsets.ModelViewSet, CaravaggioThrottledViewSet):
+        RequestLogViewMixin,
+        viewsets.ModelViewSet,
+        CaravaggioThrottledViewSet):
     """ We need to use this class when we work with normal Django Model
     classes, that is, not with Cassandra or Cassandra/Solr configurations.
 
@@ -109,6 +114,7 @@ class CaravaggioDjangoModelViewSet(
 
     BOOL_OPERATORS_ALL: operations that applies to boolean fields
      in our model. Operations: exact
+
     """
     RELATIONSHIP_OPERATORS_ALL = ["in", "exact"]
     NUMERIC_OPERATORS_ALL = ['exact', 'range', 'gt', 'gte', 'lt', 'lte']
@@ -122,7 +128,7 @@ class CaravaggioDjangoModelViewSet(
     PK_OPERATORS_ALL = ['exact', 'in']
     BOOL_OPERATORS_ALL = ['exact']
 
-    """We use this field to inform about the fields we want to make it 
+    """We use this field to inform about the fields we want to make it
     filterable.
 
     For each field, we need to enumerate the list of operations that we make

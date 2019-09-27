@@ -30,8 +30,8 @@ from collections import OrderedDict
 
 from django.contrib.gis.measure import Distance
 
-from caravaggio_rest_api.drf.viewsets import \
-    CaravaggioDjangoModelViewSet, CaravaggioThrottledViewSet
+from caravaggio_rest_api.drf.mixins import RequestLogViewMixin
+from caravaggio_rest_api.drf.viewsets import CaravaggioThrottledViewSet
 from caravaggio_rest_api.utils import get_primary_keys_values
 
 try:
@@ -106,7 +106,9 @@ class CaravaggioHaystackPageNumberPagination(PageNumberPagination):
 
 
 class CaravaggioCassandraModelViewSet(
-    viewsets.ModelViewSet, CaravaggioThrottledViewSet):
+        viewsets.ModelViewSet,
+        CaravaggioThrottledViewSet,
+        RequestLogViewMixin):
     """ We use this ViewSet as a base class when we are working with and
     endpoint that is directly connected with a Cassandra model class (DSE)
 
@@ -119,40 +121,42 @@ class CaravaggioCassandraModelViewSet(
 
 
 class CaravaggioHaystackModelViewSet(
-    HaystackViewSet, CaravaggioThrottledViewSet):
-
+        HaystackViewSet,
+        CaravaggioThrottledViewSet,
+        RequestLogViewMixin):
     """ We use this ViewSet as a base class when we are working with and
     endpoint that is directly connected with a Cassandra model class and
     has an index defined in the `search_indexes.py` file for it, activating
     the support for Solr queries.
 
     By default this kind of ViewSet uses the following filters:
-     
+
     HaystackFilter : allows normal searches using Solr as backend
-    
+
     HaystackBoostFilter : activates the use of the term boosting in our
         queries. See `Term Boost <https://drf-haystack.readthedocs.io/en/
         latest/06_term_boost.html>`
-        
+
         Examples:
-        
+
         # Slight increase in relevance for documents that include "hood".
         /api/v1/search/?firstname=robin&boost=hood,1.1
 
         # Big decrease in relevance for documents that include "batman".
         /api/v1/search/?firstname=robin&boost=batman,0.8
-        
-    
+
+
     HaystackOrderingFilter : a custom implementation of the filter
         `drf_haystack.filters.HaystackOrderingFilter` support ordering by
          fields that have been defined as facet field. We do that because we
          need to prepend a "_exact" construct to the field name in order
          to work in Solr.
 
-    SeeAlso
-    -------
+    See Also
+    --------
     drf haystack filters:
         <https://drf-haystack.readthedocs.io/en/latest/index.html>
+
     """
     filter_backends = [filters.HaystackFilter,
                        filters.HaystackBoostFilter,
@@ -175,7 +179,9 @@ class CaravaggioHaystackModelViewSet(
 
 
 class CaravaggioHaystackFacetSearchViewSet(
-    mixins.FacetMixin, CaravaggioHaystackModelViewSet):
+        mixins.FacetMixin,
+        CaravaggioHaystackModelViewSet,
+        RequestLogViewMixin):
     """ This viewset extends the normal Haystack Search adding support for
     Facet queries through a new filter added to the list of `filter_backends`
 
@@ -225,7 +231,8 @@ class CaravaggioHaystackGEOSearchViewSet(CaravaggioHaystackModelViewSet):
 
         The following query paramters must be present in each request to this
          type of endpoint:
-            unit : <https://docs.djangoproject.com/en/2.2/ref/contrib/gis/measure/#supported-units>
+            unit : <https://docs.djangoproject.com/en/2.2/ref/contrib/
+            gis/measure/#supported-units>
             from : must contain a `from` parameter which is a comma separated
              longitude and latitude value.
 
