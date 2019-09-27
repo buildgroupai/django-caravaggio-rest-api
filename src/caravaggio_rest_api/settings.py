@@ -359,10 +359,14 @@ REST_FRAMEWORK = {
         'user': '60/minute'
     },
 
+    # The name of the alternative query string  be can use for authenticate
+    # users in each request
+    # Ex. http://mydomain.com/users/user/?auth_token=<token_key>"
+    'QUERY_STRING_AUTH_TOKEN': "auth_token",
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
+        'caravaggio_rest_api.drf.authentication.TokenAuthSupportQueryString',
     ),
 
     # Use Django's standard `django.contrib.auth` permissions,
