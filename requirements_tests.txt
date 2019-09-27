@@ -7,3 +7,5 @@ psycopg2-binary>=2.7.5
 
 #cassandra-driver>=3.15.0
 dse-driver>=2.6
+
+pycodestyle>=2.5.0
