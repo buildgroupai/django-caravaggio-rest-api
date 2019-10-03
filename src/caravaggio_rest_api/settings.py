@@ -66,7 +66,9 @@ class Common(Configuration):
         'django.contrib.sites',
         'django.contrib.messages',
         'django.contrib.staticfiles',
+        # Comment the next line to disable the admin:
         'django.contrib.admin',
+        # Comment the next line to disable admin documentation:
         'django.contrib.admindocs',
         'rest_framework',
         'rest_framework_filters',
@@ -168,6 +170,11 @@ class Common(Configuration):
                 'level': 'ERROR',
                 'propagate': True,
             },
+            'django_cassandra_engine': {
+                'handlers': ['console', 'debug_log', 'mail_admins'],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
             'caravaggio_rest_api': {
                 'handlers': ['console', 'mail_admins'],
                 'level': 'DEBUG',
@@ -223,7 +230,9 @@ class Common(Configuration):
         'cassandra': {
             'ENGINE': 'django_cassandra_engine',
             'NAME': CASSANDRA_DB_NAME,
-            'TEST_NAME': "test_{}".format(CASSANDRA_DB_NAME),
+            'TEST': {
+                'NAME': "test_{}".format(CASSANDRA_DB_NAME)
+            },
             'HOST': CASSANDRA_DB_HOST,
             'USER': CASSANDRA_DB_USER,
             'PASSWORD': CASSANDRA_DB_PASSWORD,
@@ -307,7 +316,7 @@ class Common(Configuration):
 
     # Static files (CSS, JavaScript, Images)
     # https://docs.djangoproject.com/en/1.8/howto/static-files/
-    STATIC_ROOT = os.path.join(BASE_DIR + '/static')
+    STATIC_ROOT = os.path.join(BASE_DIR + '/caravaggio_rest_api/static')
 
     # Static files (CSS, JavaScript, Images)
     # https://docs.djangoproject.com/en/1.8/howto/static-files/
