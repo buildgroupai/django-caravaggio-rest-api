@@ -405,7 +405,7 @@ def _create_index(model, index, connection=None):
         # Reload the index for the changes to take effect
         execute(
             "RELOAD SEARCH INDEX ON {0}.{1};".
-            format(ks_name, raw_cf_name))
+            format(ks_name, raw_cf_name), timeout=30)
 
     except KeyError:
         _logger.exception("Unable to create the search index")
