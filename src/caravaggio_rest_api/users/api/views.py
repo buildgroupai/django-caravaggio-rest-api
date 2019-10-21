@@ -200,8 +200,8 @@ class UserViewSet(CaravaggioDjangoModelViewSet):
         if self.request.user.is_staff:
             return CaravaggioUser.objects.all()
         elif self.request.user.is_client_staff:
-           return CaravaggioUser.objects.filter(
-               client=self.request.user.client.id)
+            return CaravaggioUser.objects.filter(
+                client=self.request.user.client.id)
         else:
             # Get the organizations from which the user is owner or admin
             user_organizations = CaravaggioOrganization.objects.filter(
@@ -215,8 +215,8 @@ class UserViewSet(CaravaggioDjangoModelViewSet):
 class CustomAuthToken(ObtainAuthToken):
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data,
-                                           context={'request': request})
+        serializer = self.serializer_class(
+            data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
