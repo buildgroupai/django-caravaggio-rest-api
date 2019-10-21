@@ -7,7 +7,6 @@ import inspect
 
 from django.utils import six, timezone
 from django.utils.timezone import utc
-from rest_framework.compat import unicode_to_repr
 
 try:
     from dse.cqlengine.usertype import UserType
@@ -28,7 +27,7 @@ class CurrentUserNameDefault(object):
         return self.user.username if self.user else None
 
     def __repr__(self):
-        return unicode_to_repr('%s()' % self.__class__.__name__)
+        return repr('%s()' % self.__class__.__name__)
 
 
 class CassandraDateTimeField(fields.DateTimeField):
