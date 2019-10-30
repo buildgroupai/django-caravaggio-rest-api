@@ -9,6 +9,7 @@ from haystack.models import SearchResult
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework_cache.serializers import CachedSerializerMixin
 from rest_framework_cache.settings import api_settings
+from rest_framework_cache.utils import get_cache_key
 
 from caravaggio_rest_api import fields as dse_fields
 from caravaggio_rest_api.dse.columns import Decimal, KeyEncodedMap
@@ -119,22 +120,6 @@ def get_haystack_cache_key(instance, serializer, protocol):
     params = {"id": instance.pk,
               "app_label": instance.model._meta.app_label,
               "model_name": instance.model._meta.object_name,
-              "serializer_name": serializer.__name__,
-              "protocol": protocol}
-
-    return api_settings.SERIALIZER_CACHE_KEY_FORMAT.format(**params)
-
-
-def get_cache_key(instance, serializer, protocol):
-    """Get cache key of instance"""
-    _id = "|".join([
-        "{0}:{1}".format(key, repr(value))
-        for (key, value) in get_primary_keys_values(
-            instance, instance).items()])
-
-    params = {"id": _id,
-              "app_label": instance._meta.app_label,
-              "model_name": instance._meta.object_name,
               "serializer_name": serializer.__name__,
               "protocol": protocol}
 
