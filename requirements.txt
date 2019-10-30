@@ -1,16 +1,19 @@
-Django>=2
+Django>=2,<3
 wheel==0.30.0
 
 # Django Cassandra Models
 #cassandra-driver>=3.15.0
 #dse-driver>=2.6
-#django-cassandra-engine>=1.5
-https://github.com/buildgroupai/django-cassandra-engine/tarball/1.5.5-bgds-1#egg=django-cassandra-engine-1.5.5.bgds-1
+git+ssh://git@github.com/buildgroupai/django-cassandra-engine.git#egg=django-cassandra-engine-1.5.5.bgds-1
 
 # Django REST framework
-# djangorestframework>=3.8.2
+django-registration>=3.0.1
+# djangorestframework>=3.7,<3.10
 djangorestframework-queryfields>=1.0.0
-django-rest-swagger>=2.2.0
+django-rest-auth>=0.9.5
+djangorestframework-filters==1.0.0.dev0
+drf-yasg>=1.16.1
+packaging>=19.1
 rest-framework-cache>=0.1
 pyyaml>=5.1.2
 markdown>=2.6.11  # Markdown support for the browsable API.

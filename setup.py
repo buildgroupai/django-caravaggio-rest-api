@@ -6,7 +6,21 @@ import shutil
 import sys
 from io import open
 
-from setuptools import find_packages, setup
+from setuptools import setup
+import traceback
+
+extra_params = {}
+setup_requires = [
+    'sphinx==2.2.0',
+    'sphinxcontrib-inlinesyntaxhighlight==0.2']
+
+try:
+    from pip._internal import main
+    main(['install'] + setup_requires)
+    setup_requires = []
+except Exception:
+    # Going to use easy_install for
+    traceback.print_exc()
 
 
 def read(f):
@@ -21,7 +35,7 @@ def get_version(package):
     return re.search("__version__ = ['\"]([^'\"]+)['\"]", init_py).group(1)
 
 
-version = get_version('caravaggio_rest_api')
+version = get_version('src/caravaggio_rest_api')
 
 
 if sys.argv[-1] == 'publish':
@@ -38,61 +52,24 @@ if sys.argv[-1] == 'publish':
     shutil.rmtree('django-caravaggio-rest-api.egg-info')
     sys.exit()
 
+from sphinx.setup_command import BuildDoc
+
+cmd_class = {
+    'docs': BuildDoc,
+}
 
 setup(
-    name='django-caravaggio-rest-api',
     version=version,
-    url='http://buildgroupai.com',
-    license='MIT',
-    description='A Django REST API for BigData Projects.',
-    long_description=read('README.md'),
-    long_description_content_type='text/markdown',
-    author='Javier Alperte',
-    author_email='xalperte@buildgroupai.com',  # SEE NOTE BELOW (*)
-    packages=find_packages(exclude=['tests*']),
-    include_package_data=True,
-    install_requires=[
-        'wheel>=0.30.0',
-        'django>=2',
-        'django-cassandra-engine==1.5.5.bgds-1',
-        # 'djangorestframework>=3.7,<3.10',
-        'djangorestframework-queryfields>=1.0.0',
-        'django-rest-swagger>=2.2.0',
-        'pyyaml>=5.1.2',
-        'rest-framework-cache>=0.1',
-        'django-redis>=4.10.0',
-        'markdown>=2.6.11',
-        'gdal==2.3.3',
-        'geopy>=1.17.0',
-        'drf-haystack>=1.8.5',
-        'pysolr>=3.7.0',
-        'solrq>=1.1.1',
-        'fuzzywuzzy>=0.17'],
-    python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
-    zip_safe=False,
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Web Environment',
-        'Framework :: Django',
-        'Framework :: Django :: 1.11',
-        'Framework :: Django :: 2.0',
-        'Framework :: Django :: 2.1',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Topic :: Internet :: WWW/HTTP',
-    ],
-    dependency_links=[
-        "https://github.com/buildgroupai/django-cassandra-engine/tarball/"
-        "1.5.5-bgds-1#egg=django-cassandra-engine-1.5.5.bgds-1",
-    ],
+    cmdclass=cmd_class,
+    command_options={
+        'docs': {
+            'project': ('setup.py', 'caravaggio-rest-api'),
+            'version': ('setup.py', version),
+            'release': ('setup.py', version),
+            'source_dir': ('setup.py', 'docs'),
+            'build_dir': ('setup.py', '_build_docs')}},
+    setup_requires=setup_requires,
+    setup_cfg=True
 )
 
 # (*) Please direct queries to the discussion group, rather than to me directly
