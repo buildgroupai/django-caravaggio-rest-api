@@ -468,6 +468,8 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
                 filter_type not in ['regex', 'iregex']:
             if not query_frag.startswith('(') and not query_frag.endswith(')'):
                 query_frag = "(%s)" % query_frag
+        elif isinstance(value, Raw):
+            return query_frag
 
         # Check if the field is making a reference to a Tuple/UDF object
 
