@@ -82,7 +82,8 @@ class CaravaggioHaystackPageNumberPagination(PageNumberPagination):
             results_serializer = \
                 data.serializer.context['view'].results_serializer_class
 
-            serializer = results_serializer(loaded_objects, many=True)
+            serializer = results_serializer(
+                loaded_objects, many=True, context=data.serializer.context)
             detail_data = serializer.data
 
             # Copy the relevance score into the model object
