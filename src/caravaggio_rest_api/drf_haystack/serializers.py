@@ -3,6 +3,7 @@
 # All rights reserved.
 from drf_haystack.serializers import HaystackSerializer
 from rest_framework import serializers, fields
+from rest_framework_cache.cache import cache
 from drf_queryfields import QueryFieldsMixin
 
 from haystack.models import SearchResult
@@ -131,17 +132,50 @@ class BaseCachedSerializerMixin(CachedSerializerMixin):
     def _get_cache_key(self, instance):
         request = self.context.get('request')
         protocol = request.scheme if request else 'http'
+
+        # We bypass caching when using `fields` parameter in the requests
+        if "fields" in request.GET:
+            return None
+
         return get_haystack_cache_key(instance, self.__class__, protocol) \
             if isinstance(instance, SearchResult) \
             else get_cache_key(instance, self.__class__, protocol)
+
+    def to_representation(self, instance):
+        """
+        Checks if the representation of instance is cached and adds to cache
+        if is not.
+        """
+        key = self._get_cache_key(instance)
+        if key:
+            cached = cache.get(key)
+            if cached:
+                return cached
+
+        result = super(CachedSerializerMixin, self).to_representation(instance)
+        if key:
+            cache.set(key, result, api_settings.DEFAULT_CACHE_TIMEOUT)
+        return result
 
 
 class UserTypeSerializer(serializers.Serializer):
     pass
 
 
+class DynamicFieldsSerializer(serializers.HyperlinkedModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', set())
+        super().__init__(*args, **kwargs)
+
+        if fields and '__all__' not in fields:
+            all_fields = set(self.fields.keys())
+            for not_requested in all_fields - set(fields):
+                self.fields.pop(not_requested)
+
+
 class CassandraModelSerializer(QueryFieldsMixin,
-                               serializers.HyperlinkedModelSerializer):
+                               DynamicFieldsSerializer):
 
     serializers.ModelSerializer.serializer_field_mapping[
         columns.UUID] = fields.UUIDField
@@ -169,6 +203,8 @@ class CassandraModelSerializer(QueryFieldsMixin,
         fields.BooleanField
     serializers.ModelSerializer.serializer_field_mapping[columns.Blob] = \
         fields.FileField
+    serializers.ModelSerializer.serializer_field_mapping[columns.List] = \
+        fields.ListField
     serializers.ModelSerializer.serializer_field_mapping[KeyEncodedMap] = \
         fields.DictField
 

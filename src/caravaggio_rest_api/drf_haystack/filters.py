@@ -1,14 +1,29 @@
 # -*- coding: utf-8 -*
 # Copyright (c) 2019 BuildGroup Data Services Inc.
+import operator
 
 from haystack.utils.loading import UnifiedIndex
 
 from drf_haystack.filters import \
     HaystackOrderingFilter as DRFHaystackOrderingFilter
 
+from drf_haystack.filters import \
+    HaystackFilter as DRFHaystackFilter
+
 from drf_haystack.viewsets import HaystackViewSet
 
 from rest_framework.filters import ORDER_PATTERN
+
+from caravaggio_rest_api.drf_haystack.query import CaravaggioFilterQueryBuilder
+
+
+class CaravaggioHaystackFilter(DRFHaystackFilter):
+    """
+    A filter backend that compiles a haystack compatible filtering query.
+    """
+
+    query_builder_class = CaravaggioFilterQueryBuilder
+    default_operator = operator.and_
 
 
 class HaystackOrderingFilter(DRFHaystackOrderingFilter):

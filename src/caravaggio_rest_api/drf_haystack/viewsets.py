@@ -48,7 +48,8 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
-from caravaggio_rest_api.drf_haystack.filters import HaystackOrderingFilter
+from caravaggio_rest_api.drf_haystack.filters import \
+    HaystackOrderingFilter, CaravaggioHaystackFilter
 
 LOGGER = logging.getLogger("caravaggio_rest_api")
 
@@ -71,19 +72,45 @@ class CaravaggioHaystackPageNumberPagination(PageNumberPagination):
                 except SpatialError as ex:
                     pass
 
-                loaded_objects.append(
-                    model.objects.all().
-                    filter(**get_primary_keys_values(
-                                instance, instance.model)).
-                    first())
+                if "request" in data.serializer.context and (
+                        "fields" in data.serializer.context["request"].GET):
+                    filter_fields = list(model._primary_keys.keys())
+                    selected_fields = data.serializer.context[
+                        "request"].GET["fields"].split(",")
+                    filter_fields.extend(list(selected_fields))
+                    instance = model(**dict(zip(
+                        filter_fields,
+                        model.objects.all().filter(
+                            **get_primary_keys_values(
+                                instance, instance.model)).values_list(
+                            *filter_fields, flat=False).first())))
+
+                    # Used by the caching process
+                    instance._caravaggio_fields = selected_fields
+                    loaded_objects.append(instance)
+                else:
+                    loaded_objects.append(
+                        model.objects.all().
+                        filter(**get_primary_keys_values(
+                                    instance, instance.model)).
+                        first())
 
             # Get the results serializer from the original View that originated
             # the current response
             results_serializer = \
                 data.serializer.context['view'].results_serializer_class
 
+            extra_args = {
+                "context": data.serializer.context
+            }
+
+            if "request" in data.serializer.context and (
+                    "fields" in data.serializer.context["request"].GET):
+                extra_args["fields"] = data.serializer.context[
+                    "request"].GET["fields"].split(",")
+
             serializer = results_serializer(
-                loaded_objects, many=True, context=data.serializer.context)
+                loaded_objects, many=True, **extra_args)
             detail_data = serializer.data
 
             # Copy the relevance score into the model object
@@ -159,7 +186,7 @@ class CaravaggioHaystackModelViewSet(
         <https://drf-haystack.readthedocs.io/en/latest/index.html>
 
     """
-    filter_backends = [filters.HaystackFilter,
+    filter_backends = [CaravaggioHaystackFilter,
                        filters.HaystackBoostFilter,
                        HaystackOrderingFilter]
 
@@ -204,7 +231,7 @@ class CaravaggioHaystackFacetSearchViewSet(
     when we want to create facets (bins) for specific fields, like date.
     """
 
-    filter_backends = [filters.HaystackFilter,
+    filter_backends = [CaravaggioHaystackFilter,
                        filters.HaystackBoostFilter,
                        filters.HaystackFacetFilter,
                        HaystackOrderingFilter]
@@ -253,7 +280,7 @@ class CaravaggioHaystackGEOSearchViewSet(CaravaggioHaystackModelViewSet):
 
     """
 
-    filter_backends = [filters.HaystackFilter,
+    filter_backends = [CaravaggioHaystackFilter,
                        filters.HaystackBoostFilter,
                        filters.HaystackGEOSpatialFilter,
                        HaystackOrderingFilter]

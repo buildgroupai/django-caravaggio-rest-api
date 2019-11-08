@@ -500,7 +500,9 @@ class Common(Configuration):
 
     # DRF Caching
     REST_FRAMEWORK_CACHE = {
-        "DEFAULT_CACHE_BACKEND": 'mem_cache',
+        # The caching system must be always a distributed cache if we plan
+        # to start multiple instances of the application
+        "DEFAULT_CACHE_BACKEND": 'default',
         "DEFAULT_CACHE_TIMEOUT": 86400,  # Default is 1 day
     }
 

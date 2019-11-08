@@ -19,8 +19,14 @@ try:
     main(['install'] + setup_requires)
     setup_requires = []
 except Exception:
-    # Going to use easy_install for
-    traceback.print_exc()
+    try:
+        from pip._internal.main import main
+
+        main(['install'] + setup_requires)
+        setup_requires = []
+    except Exception:
+        # Going to use easy_install for
+        traceback.print_exc()
 
 
 def read(f):
