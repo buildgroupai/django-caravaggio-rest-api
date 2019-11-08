@@ -98,3 +98,14 @@ Geo Spatial searches:
 ```
 km=10&from=-123.25022,44.59641
 ```
+
+## For Development
+In order to maintain a clean code, it's strongly recommended to install the
+project pre-commit hook. Just execute the following commands in the root
+directory:
+
+```
+$ chmod +x pre-commit.sh
+
+$ ln -s ../../pre-commit.sh .git/hooks/pre-commit
+```
