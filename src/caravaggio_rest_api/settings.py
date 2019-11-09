@@ -474,9 +474,9 @@ class Common(Configuration):
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
             "LOCATION": "redis://{0}{1}:{2}/1".format(
-                    ":{0}@".format(REDIS_PASS_PRIMARY)
-                    if REDIS_PASS_PRIMARY else "",
-                    REDIS_HOST_PRIMARY, REDIS_PORT_PRIMARY),
+                ":{0}@".format(REDIS_PASS_PRIMARY)
+                if REDIS_PASS_PRIMARY else "",
+                REDIS_HOST_PRIMARY, REDIS_PORT_PRIMARY),
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
             },
@@ -542,8 +542,8 @@ class Development(Common):
     ALLOWED_HOSTS = []
 
     INTERNAL_IPS = [
-            '127.0.0.1'
-        ]
+        '127.0.0.1'
+    ]
 
     INSTALLED_APPS = Common.INSTALLED_APPS + [
         'django_extensions', 'debug_toolbar'
