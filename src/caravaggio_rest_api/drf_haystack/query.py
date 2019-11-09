@@ -74,10 +74,12 @@ class CaravaggioFilterQueryBuilder(FilterQueryBuilder):
             if hasattr(self.view, "results_serializer_class") and (
                     self.view.results_serializer_class):
                 results_serializer = self.view.results_serializer_class()
-                field_repr = results_serializer.get_fields()[base_param]
-                if isinstance(field_repr, UUIDField):
-                    value[0] = field_repr.to_representation(
-                        field_repr.to_internal_value(value[0]))
+                ser_fields = results_serializer.get_fields()
+                if base_param in ser_fields:
+                    field_repr = ser_fields[base_param]
+                    if isinstance(field_repr, UUIDField):
+                        value[0] = field_repr.to_representation(
+                            field_repr.to_internal_value(value[0]))
             # END CARAVAGGIO
 
             field_queries = []
