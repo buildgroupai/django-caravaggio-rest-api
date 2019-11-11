@@ -68,6 +68,45 @@ class OrganizationViewSet(CaravaggioDjangoModelViewSet):
 
     serializer_class = CaravaggioOrganizationSerializerV1
 
+    filterset_fields = {
+        'id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
+        'email': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
+        'name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
+
+        'owner': CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
+        'owner__id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
+        'owner__first_name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
+        'owner__last_name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
+        'owner__is_staff': CaravaggioDjangoModelViewSet.BOOL_OPERATORS_ALL,
+        'owner__is_client_staff':
+            CaravaggioDjangoModelViewSet.BOOL_OPERATORS_ALL,
+
+        'number_of_total_members':
+            CaravaggioDjangoModelViewSet.NUMERIC_OPERATORS_ALL,
+        'number_of_administrators':
+            CaravaggioDjangoModelViewSet.NUMERIC_OPERATORS_ALL,
+        'number_of_members':
+            CaravaggioDjangoModelViewSet.NUMERIC_OPERATORS_ALL,
+        'number_of_restricted_members':
+            CaravaggioDjangoModelViewSet.NUMERIC_OPERATORS_ALL,
+
+        'is_active': CaravaggioDjangoModelViewSet.BOOL_OPERATORS_ALL,
+        'created': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
+        'updated': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
+        'date_deactivated': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
+
+        #'all_members': CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
+        # 'members__user': CaravaggioDjangoModelViewSet.MULTIPLE_RELATIONSHIP_OPERATORS_ALL,
+        #'administrators':
+        #    CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
+        #'restricted_members':
+        #    CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
+
+        'client': CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
+        'client__name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
+        'client__id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL
+    }
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         super().add_throttle(
@@ -89,12 +128,12 @@ class OrganizationViewSet(CaravaggioDjangoModelViewSet):
             return Response(
                 data={'message': "The organization still has members"},
                 status=status.HTTP_400_BAD_REQUEST)
-        elif obj.organizations.count() == 1:
-            return Response(
-                data={'message': "The owner of the organization doesn't "
-                                 "below to other organization, move it "
-                                 "first."},
-                status=status.HTTP_400_BAD_REQUEST)
+        # elif obj.organizations.count() == 1:
+        #     return Response(
+        #         data={'message': "The owner of the organization doesn't "
+        #                          "below to other organization, move it "
+        #                          "first."},
+        #         status=status.HTTP_400_BAD_REQUEST)
 
         self.perform_destroy(obj)
         return Response(status=status.HTTP_204_NO_CONTENT)

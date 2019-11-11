@@ -229,9 +229,9 @@ def pre_delete_organization(
 
     if instance.all_members.count() > 1:
         raise ValidationError("The organization still has members")
-    elif instance.organizations.count() == 1:
-        raise ValidationError("The owner of the organization doesn't "
-                              "below to other organization, move it first.")
+    # elif instance.organizations.count() == 1:
+    #     raise ValidationError("The owner of the organization doesn't "
+    #                           "below to other organization, move it first.")
 
 
 # We need to check if the Organization has still members or the owner is not
