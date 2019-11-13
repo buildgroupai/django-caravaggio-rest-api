@@ -11,6 +11,8 @@ from django.utils.text import capfirst
 
 from caravaggio_rest_api.users.models import \
     CaravaggioClient, CaravaggioUser, CaravaggioOrganization
+from caravaggio_rest_api.models import \
+    Token
 
 
 class NotRunningInTTYException(Exception):
@@ -42,6 +44,8 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             '--organization-role',
+            type=str,
+            choices=["member", "administrator", "restricted_member"],
             help='Specifies the Role of the new User in the Organization.'
                  ' Only needed when an existent Organization ID is provided.',
         )
@@ -160,13 +164,13 @@ class Command(BaseCommand):
             if options["organization"] is not None:
                 organization = CaravaggioOrganization.objects.get(
                     pk=options["organization"])
-                if options["organization-role"]:
-                    if options["organization-role"] == "member":
+                if options["organization_role"]:
+                    if options["organization_role"] == "member":
                         organization.members.add(object)
-                    elif options["organization-role"] == "administrator":
+                    elif options["organization_role"] == "administrator":
                         role = "administrator"
                         organization.administrators.add(object)
-                    elif options["organization-role"] == "restricted_member":
+                    elif options["organization_role"] == "restricted_member":
                         role = "restricted_member"
                         organization.restricted_members.add(object)
                 else:
@@ -174,8 +178,12 @@ class Command(BaseCommand):
                 organization.save()
 
             if options['verbosity'] >= 1:
-                self.stdout.write("User [{}] - [{}] created successfully.".
-                                  format(object.id, object.username))
+                token = Token.objects.get(user=object)
+                self.stdout.write("User [{}] - [{}] created successfully."
+                                  " API Key: [{}]".
+                                  format(object.id,
+                                         object.username,
+                                         token.key))
                 if organization:
                     self.stdout.write(
                         "Organization [{}] - role [{}]"

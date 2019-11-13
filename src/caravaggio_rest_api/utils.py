@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 # Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
-import dateutil
+import dateutil.parser
 from datetime import datetime
 
 try:

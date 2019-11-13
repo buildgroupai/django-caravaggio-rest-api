@@ -74,9 +74,11 @@ class CaravaggioOrganizationSerializerV1(DynamicFieldsSerializer):
                   'number_of_total_members', 'number_of_members',
                   'number_of_administrators', 'number_of_restricted_members',
                   'all_members',
+                  'is_active', 'date_deactivated',
                   'created', 'updated')
         read_only_fields = ('id', 'client', 'created', 'updated',
                             'members', 'restricted_members',
+                            'date_deactivated',
                             'administrators', 'members', 'restricted_members',
                             'number_of_total_members', 'number_of_members',
                             'number_of_administrators',
@@ -112,8 +114,10 @@ class CaravaggioUserSerializerV1(DynamicFieldsSerializer):
 
         fields = ('id', 'client', 'email', 'password', 'first_name',
                   'last_name', 'is_staff', 'is_client_staff',
-                  'date_joined')
-        read_only_fields = ('id', 'client', 'email', 'is_staff', 'date_joined')
+                  'date_joined', 'is_active', 'date_deactivated')
+        read_only_fields = (
+            'id', 'client', 'email', 'is_staff',
+            'date_joined', 'date_deactivated')
 
     def create(self, validated_data):
         validated_data['password'] = make_password(
