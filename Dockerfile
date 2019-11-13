@@ -12,7 +12,7 @@ ENV DB_NAME bgds
 
 # CASSANDRA connection information
 ENV CASSANDRA_DB_HOST host.docker.internal
-ENV CASSANDRA_DB_NAME bgds
+ENV CASSANDRA_DB_NAME caravaggio
 ENV CASSANDRA_DB_USER bgds
 ENV CASSANDRA_DB_PASSWORD bgds
 
