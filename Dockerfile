@@ -16,7 +16,16 @@ ENV CASSANDRA_DB_NAME caravaggio
 ENV CASSANDRA_DB_USER bgds
 ENV CASSANDRA_DB_PASSWORD bgds
 
-# Install git and openssh
+# SOLR connection information
+ENV HAYSTACK_URL="http://host.docker.internal:8983/solr"
+
+# REDIS connection information
+ENV REDIS_HOST_PRIMARY host.docker.internal
+
+# CHROMIUM configuration
+ENV CHROMIUM_BIN_FILE="/usr/bin/chromium"
+
+# Install all the dependencies
 RUN apt-get update && \
     apt-get install -y \
         git \
@@ -24,7 +33,13 @@ RUN apt-get update && \
         libgdal-dev \
         libev4 \
         libev-dev \
-        build-essential
+        build-essential \
+        curl \
+        unzip \
+        xvfb \
+        tinywm \
+        fonts-ipafont-gothic xfonts-100dpi xfonts-75dpi xfonts-scalable xfonts-cyrillic \
+        chromium
 
 ENV CPLUS_INCLUDE_PATH /usr/include/gdal
 ENV C_INCLUDE_PATH /usr/include/gdal
@@ -39,6 +54,15 @@ RUN echo "$ssh_prv_key" > /root/.ssh/id_rsa && \
     echo "$ssh_pub_key" > /root/.ssh/id_rsa.pub && \
     chmod 600 /root/.ssh/id_rsa && \
     chmod 600 /root/.ssh/id_rsa.pub
+
+# Install Chrome WebDriver
+RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
+    mkdir -p /opt/chromedriver-$CHROMEDRIVER_VERSION && \
+    curl -sS -o /tmp/chromedriver_linux64.zip http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip && \
+    unzip -qq /tmp/chromedriver_linux64.zip -d /opt/chromedriver-$CHROMEDRIVER_VERSION && \
+    rm /tmp/chromedriver_linux64.zip && \
+    chmod +x /opt/chromedriver-$CHROMEDRIVER_VERSION/chromedriver && \
+    ln -fs /opt/chromedriver-$CHROMEDRIVER_VERSION/chromedriver /usr/local/bin/chromedriver
 
 RUN mkdir /caravaggio
 
