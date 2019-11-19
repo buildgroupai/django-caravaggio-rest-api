@@ -50,9 +50,15 @@ class CompanyIndex(BaseSearchIndex, indexes.Indexable):
     contact_email = indexes.CharField(
         model_attr="stock_symbol")
 
+    headcount = indexes.IntegerField(
+        model_attr="headcount", faceted=True)
+
+    company_score = indexes.FloatField(
+        model_attr="company_score", faceted=True)
+
     # Address UDT fields
     address_street_type = indexes.CharField(
-        model_attr="address.street_type")
+        model_attr="address.street_type", faceted=True)
     address_street_name = indexes.CharField(
         model_attr="address.street_name")
     address_street_number = \

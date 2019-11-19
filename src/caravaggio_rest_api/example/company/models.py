@@ -89,6 +89,12 @@ class Company(CustomDjangoCassandraModel):
     # Contact email of the company
     contact_email = columns.Text()
 
+    # The number of employees
+    headcount = columns.Integer()
+
+    # The number of employees
+    company_score = columns.Float()
+
     # The IDs of the founders of the company
     founders = columns.List(value_type=columns.UUID)
 
