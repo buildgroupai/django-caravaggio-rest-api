@@ -31,6 +31,14 @@ class CaravaggioSearchQuerySet(SearchQuerySet):
         clone.query.add_json_query_facet(facet_name, q, facets, **kwargs)
         return clone
 
+    def range_facet(self, field, **options):
+        """Adds ranged faceting to a query for the provided field. Only for Solr.
+        Options: start, end, gap, hardend, other, include, as described at
+        http://wiki.apache.org/solr/SimpleFacetParameters#Facet_by_Range"""
+        clone = self._clone()
+        clone.query.add_range_facet(field, **options)
+        return clone
+
     def values(self, *fields):
         """
         Returns a list of dictionaries, each containing the key/value pairs for
