@@ -266,7 +266,7 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
                             start_offset=0, end_offset=None,
                             fields='', highlight=False, facets=None,
                             date_facets=None, query_facets=None,
-                            range_facets=None,
+                            range_facets=None, facets_options=None,
                             narrow_queries=None, spelling_query=None,
                             within=None, dwithin=None, distance_point=None,
                             models=None, limit_to_registered_models=None,
@@ -275,6 +275,7 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
 
         self.date_facets = date_facets.copy() if date_facets else {}
         self.range_facets = range_facets.copy() if range_facets else {}
+        self.facets_options = facets_options.copy() if facets_options else {}
 
         kwargs = super().build_search_kwargs(
             query_string, sort_by=sort_by, start_offset=start_offset,
@@ -328,6 +329,10 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
                         if key == 'hardend':
                             value = 'true' if value else ''
                         kwargs['f.%s.facet.range.%s' % (field, key)] = value
+
+        if facets_options is not None:
+            for param, value in facets_options.items():
+                kwargs[param] = value
 
         return kwargs
 
@@ -394,6 +399,7 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
         self.query_filter = SolrSearchNode()
         self.json_facets = {}
         self.range_facets = {}
+        self.facets_options = {}
 
     def build_query_fragment(self, field, filter_type, value):
         from haystack import connections
@@ -529,6 +535,10 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
         if self.range_facets:
             kwargs['range_facets'] = self.range_facets
 
+        if self.facets_options:
+            for param, options in self.facets_options.items():
+                kwargs[param] = options
+
         return kwargs
 
     def _get_facet_fieldname(self, field):
@@ -538,6 +548,9 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
 
     def add_range_facet(self, field, **options):
         self.range_facets[self._get_facet_fieldname(field)] = options
+
+    def add_facets_option(self, facets_param, value):
+        self.facets_options[facets_param] = value
 
     def add_json_terms_facet(self, facet_name, field, facets, **kwargs):
         """
@@ -614,6 +627,7 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
         clone = super()._clone(klass=klass, using=using)
         clone.json_facets = self.json_facets.copy()
         clone.range_facets = self.range_facets.copy()
+        clone.facets_options = self.facets_options.copy()
         return clone
 
     def run(self, spelling_query=None, **kwargs):

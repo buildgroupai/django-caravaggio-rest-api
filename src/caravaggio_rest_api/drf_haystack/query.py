@@ -35,6 +35,7 @@ class CaravaggioFacetQueryBuilder(FacetQueryBuilder):
         date_facets = {}
         query_facets = {}
         range_facets = {}
+        facets_options = {}
         facet_serializer_cls = self.view.get_facet_serializer_class()
 
         if self.view.lookup_sep == ":":
@@ -87,11 +88,16 @@ class CaravaggioFacetQueryBuilder(FacetQueryBuilder):
             else:
                 field_facets[field] = field_options[field]
 
+        for field, options in filters.items():
+            if field in ("facet.mincount", "facet.missing"):
+                facets_options[field] = options
+
         return {
             "date_facets": date_facets,
             "field_facets": field_facets,
             "query_facets": query_facets,
-            "range_facets": range_facets
+            "range_facets": range_facets,
+            "facets_options": facets_options
         }
 
     def parse_field_options(self, *options):
