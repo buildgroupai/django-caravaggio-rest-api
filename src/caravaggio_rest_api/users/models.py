@@ -135,7 +135,7 @@ class CaravaggioUser(AbstractUser):
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = [
-        'client', 'email', "first_name", "last_name"]
+        'client', 'email', "first_name", "last_name", "is_client_staff"]
 
     objects = CaravaggioUserManager()
 
