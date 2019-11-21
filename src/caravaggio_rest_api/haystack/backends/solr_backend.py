@@ -452,7 +452,24 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
         if value.post_process is False:
             query_frag = prepared_value
         else:
-            if filter_type in \
+            if field == 'text':
+                operator = ""
+                if '|' in prepared_value:
+                    operator = "OR"
+                    terms = prepared_value.split('|')
+                elif '&' in prepared_value:
+                    operator = "AND"
+                    terms = prepared_value.split('&')
+                else:
+                    terms = [prepared_value]
+
+                if len(terms) == 1:
+                    query_frag = '"{}"'.format(terms[0])
+                else:
+                    terms = ['"{}"'.format(term) for term in terms]
+                    query_frag = u'(%s)' % ' {} '.\
+                        format(operator).join(terms)
+            elif filter_type in \
                     ['content', 'contains', 'startswith',
                      'endswith', 'fuzzy', 'regex', 'iregex']:
                 if value.input_type_name == 'exact':
