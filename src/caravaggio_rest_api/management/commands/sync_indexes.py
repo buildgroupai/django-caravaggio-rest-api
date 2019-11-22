@@ -24,6 +24,7 @@ from haystack import fields
 
 _logger = logging.getLogger(__name__)
 
+
 TEXT_SEARCH_JSON_SNIPPED = """
 $${
     "analyzer": [
@@ -57,6 +58,30 @@ def _define_types(ks_name, raw_cf_name):
                 " WITH {2};".
                 format(ks_name, raw_cf_name,
                        TEXT_SEARCH_JSON_SNIPPED))
+    except Exception as ex:
+        _logger.warning(
+            "Maybe te field type has been already"
+            " defined in the schema. Cause: {}".format(ex))
+        pass
+
+    # Define a TrieFloatField type to analyze texts (tokenizer, ascii, etc.)
+    try:
+        execute("ALTER SEARCH INDEX SCHEMA ON {0}.{1}"
+                " ADD types.fieldType[@name='TrieFloatField',"
+                " @class='org.apache.solr.schema.TrieFloatField'];".
+                format(ks_name, raw_cf_name))
+    except Exception as ex:
+        _logger.warning(
+            "Maybe te field type has been already"
+            " defined in the schema. Cause: {}".format(ex))
+        pass
+
+    # Define a TrieIntField type to analyze texts (tokenizer, ascii, etc.)
+    try:
+        execute("ALTER SEARCH INDEX SCHEMA ON {0}.{1}"
+                " ADD types.fieldType[@name='TrieIntField',"
+                " @class='org.apache.solr.schema.TrieIntField'];".
+                format(ks_name, raw_cf_name))
     except Exception as ex:
         _logger.warning(
             "Maybe te field type has been already"
@@ -199,37 +224,70 @@ def create_index(model, index, keyspaces=None, connections=None):
             _create_index(m, index, connection=connection)
 
 
+def _find_udt_attribute(model, field_name):
+    field_segments = field_name.split(".")
+    _logger.debug("[UDT] Field segments: [{}]".format(field_segments))
+    if len(field_segments) > 1:
+        attribute = getattr(model, field_segments[0], None)
+        clazz = attribute.column.__class__
+
+        if attribute.column.__class__ == columns.UserDefinedType:
+            clazz = attribute.column.user_type
+
+        if issubclass(clazz, columns.List):
+            clazz = attribute.column.types[0].__class__
+        elif issubclass(clazz, columns.Set):
+            clazz = attribute.column.types[0].__class__
+        _logger.debug("[UDT] Model for field [{}]: {}".
+                      format(field_segments[0], clazz))
+        return _find_udt_attribute(clazz, ".".join(field_segments[1:]))
+
+    return getattr(model, field_segments[0], None)
+
+
 def _get_solr_type(model, index, search_field):
-    attribute = getattr(model, search_field.model_attr, None)
+    if '.' not in search_field.model_attr:
+        attribute = getattr(model, search_field.model_attr, None)
+    else:
+        _logger.debug("Find field [{}] in UDT object.".
+                      format(search_field.model_attr))
+        attribute = _find_udt_attribute(model, search_field.model_attr)
+
+    _logger.debug("Attribute for [{}]: {}".format(
+        search_field.model_attr, attribute))
+
     if attribute:
         clazz = attribute.column.__class__
         if issubclass(clazz, columns.List):
             clazz = attribute.column.types[0].__class__
-        if issubclass(clazz, columns.Set):
+        elif issubclass(clazz, columns.Set):
             clazz = attribute.column.types[0].__class__
 
-        if issubclass(clazz, columns.Integer) or \
-                issubclass(clazz, columns.SmallInt) or \
-                issubclass(clazz, columns.BigInt):
+        if issubclass(clazz, columns.BigInt):
+            return "TrieLongField"
+        elif issubclass(clazz, columns.Integer) or (
+                issubclass(clazz, columns.SmallInt)) or (
+                issubclass(clazz, columns.Counter)) or (
+                issubclass(clazz, columns.VarInt)):
             return "TrieIntField"
-        if issubclass(clazz, columns.Double):
+        elif issubclass(clazz, columns.Double):
+            return "TrieDoubleField"
+        elif issubclass(clazz, columns.Float):
             return "TrieFloatField"
-        if issubclass(clazz, columns.Decimal):
+        elif issubclass(clazz, columns.Decimal):
             return "TrieDecimalField"
-        if issubclass(clazz, columns.Date):
+        elif issubclass(clazz, columns.Date):
             return "SimpleDateField"
-        if issubclass(clazz, columns.DateTime):
+        elif issubclass(clazz, columns.DateTime):
             return "TrieDateField"
-        if issubclass(clazz, columns.Time):
+        elif issubclass(clazz, columns.Time):
             return "TrieDateField"
-        if issubclass(clazz, columns.Time):
-            return "TrieDateField"
-        if issubclass(clazz, columns.Boolean):
+        elif issubclass(clazz, columns.Boolean):
             return "BoolField"
-        if issubclass(clazz, columns.UUID):
-            return "UUIDField"
-        if issubclass(clazz, columns.TimeUUID):
+        elif issubclass(clazz, columns.TimeUUID):
             return "TimeUUIDField"
+        elif issubclass(clazz, columns.UUID):
+            return "UUIDField"
 
     if issubclass(search_field.__class__, fields.LocationField):
         return "LocationField"
@@ -237,6 +295,7 @@ def _get_solr_type(model, index, search_field):
     if search_field.model_attr in index.Meta.text_fields:
         return "TextField"
 
+    _logger.debug("StrFields for field: {}".format(search_field.model_attr))
     return "StrField"
 
 

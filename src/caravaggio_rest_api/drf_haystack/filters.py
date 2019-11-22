@@ -10,11 +10,16 @@ from drf_haystack.filters import \
 from drf_haystack.filters import \
     HaystackFilter as DRFHaystackFilter
 
+from drf_haystack.filters import \
+    HaystackFacetFilter as DRFHaystackFacetFilter
+
 from drf_haystack.viewsets import HaystackViewSet
 
 from rest_framework.filters import ORDER_PATTERN
 
-from caravaggio_rest_api.drf_haystack.query import CaravaggioFilterQueryBuilder
+from caravaggio_rest_api.drf_haystack.query import \
+    CaravaggioFilterQueryBuilder, CaravaggioFacetQueryBuilder
+from caravaggio_rest_api.haystack.query import CaravaggioSearchQuerySet
 
 
 class CaravaggioHaystackFilter(DRFHaystackFilter):
@@ -24,6 +29,30 @@ class CaravaggioHaystackFilter(DRFHaystackFilter):
 
     query_builder_class = CaravaggioFilterQueryBuilder
     default_operator = operator.and_
+
+
+class CaravaggioHaystackFacetFilter(DRFHaystackFacetFilter):
+
+    query_builder_class = CaravaggioFacetQueryBuilder
+
+    def apply_filters(self, queryset,
+                      applicable_filters=None, applicable_exclusions=None):
+        """
+        Apply faceting to the queryset
+        """
+        queryset = super().apply_filters(
+            queryset,
+            applicable_filters=applicable_filters,
+            applicable_exclusions=applicable_exclusions)
+
+        if isinstance(queryset, CaravaggioSearchQuerySet):
+            for field, options in applicable_filters["range_facets"].items():
+                queryset = queryset.range_facet(field, **options)
+
+            for field, options in applicable_filters["facets_options"].items():
+                queryset = queryset.facets_option(field, options)
+
+        return queryset
 
 
 class HaystackOrderingFilter(DRFHaystackOrderingFilter):

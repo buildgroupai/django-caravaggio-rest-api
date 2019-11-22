@@ -48,8 +48,12 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
+from caravaggio_rest_api.haystack.query import CaravaggioSearchQuerySet
+
 from caravaggio_rest_api.drf_haystack.filters import \
-    HaystackOrderingFilter, CaravaggioHaystackFilter
+    HaystackOrderingFilter, \
+    CaravaggioHaystackFilter, \
+    CaravaggioHaystackFacetFilter
 
 LOGGER = logging.getLogger("caravaggio_rest_api")
 
@@ -231,9 +235,13 @@ class CaravaggioHaystackFacetSearchViewSet(
     when we want to create facets (bins) for specific fields, like date.
     """
 
+    object_class = CaravaggioSearchQuerySet
+
+    facet_filter_backends = [CaravaggioHaystackFacetFilter]
+
     filter_backends = [CaravaggioHaystackFilter,
                        filters.HaystackBoostFilter,
-                       filters.HaystackFacetFilter,
+                       CaravaggioHaystackFacetFilter,
                        HaystackOrderingFilter]
 
     def __init__(self, *args, **kwargs):
