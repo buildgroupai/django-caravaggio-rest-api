@@ -198,6 +198,8 @@ class CaravaggioHaystackModelViewSet(
 
     pagination_class = CaravaggioHaystackPageNumberPagination
 
+    http_method_names = ['get']
+
     document_uid_field = "id"
 
     def __init__(self, *args, **kwargs):
@@ -243,6 +245,8 @@ class CaravaggioHaystackFacetSearchViewSet(
                        filters.HaystackBoostFilter,
                        CaravaggioHaystackFacetFilter,
                        HaystackOrderingFilter]
+
+    http_method_names = ['get']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
