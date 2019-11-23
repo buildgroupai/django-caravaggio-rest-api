@@ -177,38 +177,39 @@ class CompanyFacetSerializerV1(HaystackFacetSerializer):
     class Meta:
         index_classes = [CompanyIndex]
         fields = ["foundation_date", "country_code", "stock_symbol",
-                  "founders", "specialties", "last_round"]
+                  "founders", "specialties", "last_round", "headcount"]
 
         # IMPORTANT
         # Faceting on Tuple fields is not supported
         # "address_street_type", "address_state", "address_region",
         # "address_city", "address_country_code", "address_zipcode"
 
+        # Example of queries:
+        # http://localhost:8001/companies/company/search/facets/?
+        # headcount=start:0,end:5000,gap:20&facet.mincount=1
+        #
+        # http://localhost:8001/companies/company/search/facets/?
+        # foundation_date=start_date:2010-01-01,end_date:2019-11-30,
+        # gap_by:month,gap_amount:3&facet.mincount=1
+
         field_options = {
-            "country_code": {},
-            "stock_symbol": {},
-            "founders": {},
-            "specialties": {},
-            # IMPORTANT
-            # Faceting on Tuple fields is not supported
-            # "address_street_type": {},
-            # "address_state": {},
-            # "address_region": {},
-            # "address_city": {},
-            # "address_country_code": {},
-            # "address_zipcode": {},
-            "foundation_date": {
-                "start_date": datetime.now() - timedelta(days=50 * 365),
-                "end_date": datetime.now(),
-                "gap_by": "month",
-                "gap_amount": 6
-            },
-            "last_round": {
-                "start_date": datetime.now() - timedelta(days=10 * 365),
-                "end_date": datetime.now(),
-                "gap_by": "month",
-                "gap_amount": 3
-            }
+            # "headcount": {
+            #     "start": 0,
+            #     "end": 5000,
+            #     "gap": 20
+            # },
+            # "foundation_date": {
+            #     "start_date": datetime.now() - timedelta(days=50 * 365),
+            #     "end_date": datetime.now(),
+            #     "gap_by": "month",
+            #     "gap_amount": 6
+            # },
+            # "last_round": {
+            #     "start_date": datetime.now() - timedelta(days=10 * 365),
+            #     "end_date": datetime.now(),
+            #     "gap_by": "month",
+            #     "gap_amount": 3
+            # }
         }
 
 
