@@ -34,11 +34,10 @@ class CaravaggiokRouter(routers.DefaultRouter):
             actions are: lest, retrieve, create, update, partial_update,
             and destroy
         """
-        # actions must not be empty
+        # if actions is None, we register all the available operations
         if not actions:
-            raise TypeError("The `actions` argument must be provided when "
-                            "calling `__init__` on this Router. For example "
-                            "`CaravaggiokRouter(['list', 'retrieve'])`")
+            actions = list(VALID_ACTIONS_FOR_LIST.keys()) + \
+                      list(VALID_ACTIONS_FOR_DETAIL)
 
         if not isinstance(actions, (list, set)):
             raise TypeError("The `actions` argument must be a list or set."
