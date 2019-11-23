@@ -44,10 +44,6 @@ class CaravaggiokRouter(routers.DefaultRouter):
                             "For example "
                             "`CaravaggiokRouter(['list', 'retrieve'])`")
 
-        import pydevd_pycharm
-        pydevd_pycharm.settrace('localhost', port=8787, stdoutToServer=True,
-                                stderrToServer=True)
-
         list_actions = {}
         detail_actions = {}
 
