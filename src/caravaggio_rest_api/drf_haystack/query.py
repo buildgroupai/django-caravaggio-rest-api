@@ -50,6 +50,10 @@ class CaravaggioFacetQueryBuilder(FacetQueryBuilder):
         field_options = facet_serializer_cls.Meta.field_options
 
         for field, options in filters.items():
+            if not field.startswith("facet.field."):
+                continue
+
+            field = field[len("facet.field."):]
 
             if field not in fields or field in exclude:
                 continue
