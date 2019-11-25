@@ -38,17 +38,31 @@ class CaravaggioThrottledViewSet(object):
     """
     throttle_scope = ""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         # Registering throttle operations
-        for operation in settings.THROTTLE_OPERATIONS.keys():
-            scope = "{0}.{1}".format(self.__class__.__name__, operation)
-            if scope not in settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]:
-                settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"][scope] = \
-                    settings.THROTTLE_OPERATIONS[operation]
+        if hasattr(settings, "THROTTLE_ENABLED") \
+                and settings.THROTTLE_ENABLED:
+            view_throttle_operations = self.throttle_operations.copy() \
+                if hasattr(self, "throttle_operations") else {}
+
+            system_operations = settings.THROTTLE_OPERATIONS.copy() \
+                if hasattr(settings, "THROTTLE_OPERATIONS") else {}
+
+            system_operations.update(view_throttle_operations)
+
+            for operation in system_operations.keys():
+                scope = "{0}.{1}".format(self.__class__.__name__, operation)
+                if scope not in settings.REST_FRAMEWORK[
+                        "DEFAULT_THROTTLE_RATES"]:
+                    settings.REST_FRAMEWORK[
+                        "DEFAULT_THROTTLE_RATES"][scope] = \
+                        system_operations[operation]
 
     def add_throttle(self, operation, rate):
-        scope = "{}.{}".format(self.__class__.__name__, operation)
-        settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"][scope] = rate
+        if hasattr(settings, "THROTTLE_ENABLED") \
+                and settings.THROTTLE_ENABLED:
+            scope = "{}.{}".format(self.__class__.__name__, operation)
+            settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"][scope] = rate
 
     def get_throttles(self):
         # Only if the scope is not already set we can do that overwriting
@@ -70,9 +84,9 @@ class CaravaggioThrottledViewSet(object):
 
 
 class CaravaggioDjangoModelViewSet(
+        CaravaggioThrottledViewSet,
         RequestLogViewMixin,
-        viewsets.ModelViewSet,
-        CaravaggioThrottledViewSet):
+        viewsets.ModelViewSet):
     """ We need to use this class when we work with normal Django Model
     classes, that is, not with Cassandra or Cassandra/Solr configurations.
 
@@ -116,6 +130,7 @@ class CaravaggioDjangoModelViewSet(
      in our model. Operations: exact
 
     """
+    MULTIPLE_RELATIONSHIP_OPERATORS_ALL = ["contains"]
     RELATIONSHIP_OPERATORS_ALL = ["in", "exact"]
     NUMERIC_OPERATORS_ALL = ['exact', 'range', 'gt', 'gte', 'lt', 'lte']
     DATE_OPERATORS_ALL = ['exact', 'range', 'gt', 'gte', 'lt', 'lte', 'in',
