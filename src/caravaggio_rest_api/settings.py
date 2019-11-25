@@ -389,7 +389,10 @@ class Common(Configuration):
 
         # https://www.django-rest-framework.org/api-guide/fields/#decimalfield
         # To use decimal as representation by default
-        'COERCE_DECIMAL_TO_STRING': False
+        'COERCE_DECIMAL_TO_STRING': False,
+
+        'EXCEPTION_HANDLER':
+            'caravaggio_rest_api.drf.exceptions.caravaggio_exception_handler'
     }
 
     ACCOUNT_USER_MODEL_USERNAME_FIELD = None
