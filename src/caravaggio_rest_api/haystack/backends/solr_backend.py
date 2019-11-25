@@ -34,7 +34,7 @@ VALID_JSON_FACET_TYPES = ["terms", "query"]
 
 def group_facet_counts(lst, n):
     for i in range(0, len(lst), n):
-        val = lst[i:i+n]
+        val = lst[i: i + n]
         if len(val) == n:
             yield tuple(val)
 
@@ -319,8 +319,8 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
                 if 'facet.range' in kwargs:
                     kwargs['facet.range'] = \
                         list(set(
-                            list(kwargs['facet.range']) +
-                            list(range_facets.keys())))
+                            list(kwargs['facet.range']) + (
+                                list(range_facets.keys()))))
                 else:
                     kwargs['facet.range'] = range_facets.keys()
                 for key, value in options.items():

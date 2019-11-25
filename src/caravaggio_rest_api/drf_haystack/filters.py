@@ -93,5 +93,5 @@ class HaystackOrderingFilter(DRFHaystackOrderingFilter):
         return [term.replace(term.lstrip('-'),
                              valid_fields[term.lstrip('-')])
                 for term in fields
-                if term.lstrip('-') in valid_fields.keys() and
-                ORDER_PATTERN.match(term)]
+                if term.lstrip('-') in valid_fields.keys() and (
+                ORDER_PATTERN.match(term))]

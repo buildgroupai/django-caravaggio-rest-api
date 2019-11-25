@@ -67,11 +67,12 @@ class Command(BaseCommand):
             help='Specifies the last name of the new user.',
         )
         parser.add_argument(
-            '--noinput', '--no-input', action='store_false', dest='interactive',
+            '--noinput', '--no-input',
+            action='store_false', dest='interactive',
             help=(
                 'Tells Django to NOT prompt the user for input of any kind. '
-                'You must use --email with --noinput, along with an option for '
-                'any other required field.'
+                'You must use --email with --noinput, along with an option for'
+                ' any other required field.'
             ),
         )
         parser.add_argument(

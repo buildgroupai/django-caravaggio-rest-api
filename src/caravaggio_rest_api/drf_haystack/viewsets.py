@@ -97,7 +97,7 @@ class CaravaggioHaystackPageNumberPagination(PageNumberPagination):
                     loaded_objects.append(
                         model.objects.all().
                         filter(**get_primary_keys_values(
-                                    instance, instance.model)).
+                            instance, instance.model)).
                         first())
 
             # Get the results serializer from the original View that originated

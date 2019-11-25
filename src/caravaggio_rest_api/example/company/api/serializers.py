@@ -162,7 +162,7 @@ class CompanyGEOSearchSerializerV1(CustomHaystackSerializer,
             "contact_email", "founders", "specialties",
             "latest_twitter_followers", "websites", "crawler_config",
             "extra_data",
-            "text",  "score", "distance"
+            "text", "score", "distance"
         ]
 
 

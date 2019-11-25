@@ -91,8 +91,8 @@ def set_instance_values(nested_serializers,
                         __serializer_name][__field_name]},
                     {__field_name: __field_value},
                     instance)
-        userType = getattr(nested_serializers[
-                               __serializer_name].Meta, '__type__', None)
+        userType = getattr(
+            nested_serializers[__serializer_name].Meta, '__type__', None)
         setattr(instance, __serializer_name, userType(**__serializer))
 
 

@@ -37,7 +37,7 @@ class CaravaggioRouter(routers.DefaultRouter):
         # if actions is None, we register all the available operations
         if not actions:
             actions = list(VALID_ACTIONS_FOR_LIST.keys()) + \
-                      list(VALID_ACTIONS_FOR_DETAIL)
+                list(VALID_ACTIONS_FOR_DETAIL)
 
         if not isinstance(actions, (list, set)):
             raise TypeError("The `actions` argument must be a list or set."

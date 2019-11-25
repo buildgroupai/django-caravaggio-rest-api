@@ -52,11 +52,12 @@ class Command(BaseCommand):
                  ' owner of the organization.',
         )
         parser.add_argument(
-            '--noinput', '--no-input', action='store_false', dest='interactive',
+            '--noinput', '--no-input',
+            action='store_false', dest='interactive',
             help=(
                 'Tells Django to NOT prompt the user for input of any kind. '
-                'You must use --email with --noinput, along with an option for '
-                'any other required field.'
+                'You must use --email with --noinput, along with an option for'
+                ' any other required field.'
             ),
         )
         parser.add_argument(
@@ -134,7 +135,8 @@ class Command(BaseCommand):
                 org_data["email"] = email
                 for field_name in CaravaggioOrganization.REQUIRED_FIELDS:
                     if options[field_name]:
-                        field = CaravaggioOrganization._meta.get_field(field_name)
+                        field = \
+                            CaravaggioOrganization._meta.get_field(field_name)
                         org_data[field_name] = field.clean(
                             options[field_name], None)
                     else:
