@@ -59,6 +59,7 @@ LOGGER = logging.getLogger("caravaggio_rest_api")
 
 
 class CaravaggioHaystackPageNumberPagination(PageNumberPagination):
+
     page_size_query_param = "limit"
 
     def get_paginated_response(self, data):
@@ -138,8 +139,8 @@ class CaravaggioHaystackPageNumberPagination(PageNumberPagination):
 
 
 class CaravaggioCassandraModelViewSet(
-        viewsets.ModelViewSet,
         CaravaggioThrottledViewSet,
+        viewsets.ModelViewSet,
         RequestLogViewMixin):
     """ We use this ViewSet as a base class when we are working with and
     endpoint that is directly connected with a Cassandra model class (DSE)
@@ -153,8 +154,8 @@ class CaravaggioCassandraModelViewSet(
 
 
 class CaravaggioHaystackModelViewSet(
-        HaystackViewSet,
         CaravaggioThrottledViewSet,
+        HaystackViewSet,
         RequestLogViewMixin):
     """ We use this ViewSet as a base class when we are working with and
     endpoint that is directly connected with a Cassandra model class and
@@ -213,9 +214,10 @@ class CaravaggioHaystackModelViewSet(
 
 
 class CaravaggioHaystackFacetSearchViewSet(
+        CaravaggioThrottledViewSet,
         mixins.FacetMixin,
-        CaravaggioHaystackModelViewSet,
-        RequestLogViewMixin):
+        RequestLogViewMixin,
+        HaystackViewSet):
     """ This viewset extends the normal Haystack Search adding support for
     Facet queries through a new filter added to the list of `filter_backends`
 
@@ -237,9 +239,14 @@ class CaravaggioHaystackFacetSearchViewSet(
     when we want to create facets (bins) for specific fields, like date.
     """
 
+    pagination_class = CaravaggioHaystackPageNumberPagination
+
     object_class = CaravaggioSearchQuerySet
 
-    facet_filter_backends = [CaravaggioHaystackFacetFilter]
+    facet_filter_backends = [CaravaggioHaystackFilter,
+                             filters.HaystackBoostFilter,
+                             CaravaggioHaystackFacetFilter,
+                             HaystackOrderingFilter]
 
     filter_backends = [CaravaggioHaystackFilter,
                        filters.HaystackBoostFilter,
@@ -248,8 +255,16 @@ class CaravaggioHaystackFacetSearchViewSet(
 
     http_method_names = ['get']
 
+    document_uid_field = "id"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Checking if the base class has defined some required attributes in
+        # the class
+        if not hasattr(self, 'index_models'):
+            raise AttributeError(
+                'You need to define the attribute "index_models"')
 
         # Checking if the base class has defined some required attributes in
         # the class
