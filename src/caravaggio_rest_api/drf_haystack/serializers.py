@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*
 # Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
-from drf_haystack.serializers import HaystackSerializer
+from drf_haystack.serializers import \
+    HaystackSerializer, HaystackFacetSerializer
 from rest_framework import serializers, fields
 from rest_framework_cache.cache import cache
 from drf_queryfields import QueryFieldsMixin
@@ -264,6 +265,14 @@ class CassandraModelSerializer(QueryFieldsMixin,
 class CustomHaystackSerializer(HaystackSerializer):
 
     _abstract = True
+
+    class Meta:
+        error_status_codes = {
+            HTTP_400_BAD_REQUEST: 'Bad Request'
+        }
+
+
+class CustomHaystackFacetSerializer(HaystackFacetSerializer):
 
     class Meta:
         error_status_codes = {

@@ -2,8 +2,8 @@
 from datetime import datetime, timedelta
 
 from caravaggio_rest_api.drf_haystack.serializers import \
-    BaseCachedSerializerMixin, CustomHaystackSerializer
-from drf_haystack.serializers import HaystackFacetSerializer
+    BaseCachedSerializerMixin, CustomHaystackSerializer, \
+    CustomHaystackFacetSerializer
 
 from rest_framework import fields, serializers
 from rest_framework.status import HTTP_400_BAD_REQUEST
@@ -166,7 +166,7 @@ class CompanyGEOSearchSerializerV1(CustomHaystackSerializer,
         ]
 
 
-class CompanyFacetSerializerV1(HaystackFacetSerializer):
+class CompanyFacetSerializerV1(CustomHaystackFacetSerializer):
 
     # Setting this to True will serialize the
     # queryset into an `objects` list. This
