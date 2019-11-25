@@ -7,6 +7,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from django.http import HttpRequest
 from django.contrib.auth.hashers import make_password
 from django.utils.translation import gettext_lazy as _
 
@@ -92,7 +93,7 @@ class CaravaggioUserSerializerV1(DynamicFieldsSerializer):
     """
 
     client = PrimaryKeyRelatedField(queryset=CaravaggioClient.objects.all(),
-                                    required=True)
+                                    required=False)
 
     email = serializers.CharField(
         write_only=False,
@@ -152,14 +153,20 @@ class CaravaggioUserSerializerV1(DynamicFieldsSerializer):
 
 
 class UserTokenSerializer(serializers.Serializer):
-    client_id = serializers.CharField(label=_("Client id"))
     email = serializers.CharField(label=_("Email"))
 
+    def _get_request(self):
+        request = self.context.get('request')
+        if not isinstance(request, HttpRequest):
+            request = request._request
+        return request
+
     def validate(self, attrs):
-        client_id = attrs.get('client_id')
         email = attrs.get('email')
 
-        if client_id and email:
+        client_id = self._get_request().user.client_id
+
+        if email:
             user = CaravaggioUser.objects.get(username="{}-{}".
                                               format(client_id, email))
 

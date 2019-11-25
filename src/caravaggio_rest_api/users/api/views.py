@@ -248,6 +248,7 @@ class UserViewSet(CaravaggioDjangoModelViewSet):
                     self.request.user.administrator_of.all()).values(
                     'id').all())
             return CaravaggioUser.objects.filter(
+                client=self.request.user.client.id,
                 id__in=user_organizations.values("all_members"))
 
 
@@ -274,15 +275,6 @@ class AdminAuthToken(ObtainAuthToken):
     if coreapi is not None and coreschema is not None:
         schema = ManualSchema(
             fields=[
-                coreapi.Field(
-                    name="client_id",
-                    required=True,
-                    location='form',
-                    schema=coreschema.String(
-                        title="Client Id",
-                        description="Valid client id",
-                    ),
-                ),
                 coreapi.Field(
                     name="email",
                     required=True,
