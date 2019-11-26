@@ -2,14 +2,7 @@
 Changelog
 ##########
 
-
-Current
-=======
-
-- Support for Subscriptions/Allowances and libraries for check permissions/roles
-
-
-Version 0.1.7
+Current 0.1.7
 =============
 
 New Features
@@ -199,6 +192,66 @@ New Features
 	                       "country_code", "stock_symbol")
 
 
+- A custom exception handler has been added to DRF to add more information
+to the error message the platform is sending to the client. The handler has
+been defined in
+`caravaggio_rest_api.drf.exceptions.caravaggio_exception_handler`. This handler
+adds the following details to the response:
+
+   - `status`: this ensures that all error responses include the HTTP
+   status code in the body of the response.
+
+   The handler has been registered in `settings.py` as follows:
+
+.. code-block:: python
+   :linenos:
+
+   REST_FRAMEWORK = {
+       'EXCEPTION_HANDLER':
+            'caravaggio_rest_api.drf.exceptions.caravaggio_exception_handler'
+   }
+
+- Ability to overwrite the throttling rates configuration per view declaring
+a field called `throttle_operations`. Example:
+
+.. code-block:: python
+   :linenos:
+
+   class CompanySnapshotSearchViewSet(CaravaggioHaystackFacetSearchViewSet):
+
+   throttle_operations = {
+      'list': '10/minute'
+   }
+
+- Ability to configure the facets on the request using
+`facet.field.<FIELD_NAME>` parameters. Ex.
+
+.. code-block:: shell
+
+   URL="http://localhost:8002/companies/company-snapshot/search/facets/?"
+   URL=$URL"facet.field.headcount=start:0,end:500,gap:20"
+   URL=$URL"&facet.field.foundation_date=start_date:2000-01-01,end_date:2019-11-25,gap_by:year,gap_amount:1"
+   URL=$URL"&limit=1"
+   curl -X GET $URL \
+       -H "Content-Type: application/json" \
+       -H "Authorization: Token ${CARAVAGGIO_TOKEN}"
+
+- Ability to combine filters and facets to restrict the faceting operation to
+a subset of documents. Ex.
+
+.. code-block:: shell
+
+   URL="http://localhost:8002/companies/company-snapshot/search/facets/?"
+   URL=$URL"facet.field.headcount=start:0,end:500,gap:20"
+   URL=$URL"&facet.field.foundation_date=start_date:2000-01-01,end_date:2019-11-25,gap_by:year,gap_amount:1"
+   URL=$URL"&country_code__in=USA,CAN"
+   URL=$URL"&status__in=running,zombie"
+   URL=$URL"&foundation_date__gte=2000-01-01T00:00:00.0Z"
+   URL=$URL"&funding_sum__gte=1000000"
+   URL=$URL"&limit=1"
+   curl -X GET $URL \
+       -H "Content-Type: application/json" \
+       -H "Authorization: Token ${CARAVAGGIO_TOKEN}"
 
 Improvements or Changes
 ***********************
@@ -307,8 +360,6 @@ Bug Fixing
 **********
 
 No bugs fixed
-
-
 
 
 Version 0.1.2

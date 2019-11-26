@@ -46,7 +46,7 @@ class ApiAccess(CustomDjangoCassandraModel):
 
     time_ms = columns.Integer(primary_key=True, clustering_order="DESC")
     """ Microseconds (to sort data within one row).
-    
+
     """
 
     id = columns.UUID(primary_key=True, default=uuid.uuid4)
@@ -55,37 +55,37 @@ class ApiAccess(CustomDjangoCassandraModel):
     """
 
     user = columns.UUID(required=True)
-    """ The user that made the request. 
-    
+    """ The user that made the request.
+
     """
 
     created_at = columns.DateTime(default=timezone.now)
     """ When was created the entity and the last modification date"""
 
     remote_address = InetAddress(required=True, index=True)
-    """ The IP address of the user doing the request 
+    """ The IP address of the user doing the request
 
     """
 
     server_hostname = columns.Text(required=True)
-    """ The name of the host that is processing the request 
+    """ The name of the host that is processing the request
 
     """
 
     request_method = columns.Text(required=True)
-    """ The method of the request 
+    """ The method of the request
 
     """
 
     request_path = columns.Text(required=True)
     """ The absolute path of the request
-     
+
     """
 
     request_query_params = KeyEncodedMap(
         key_type=columns.Text, value_type=columns.Text)
     """ We save all the query params informed in the request as a map.
-    
+
     We use caravaggio KeyEncodedMap that appends the field name to each of
     the keys in order to make them indexable by the Search Indexer.
     """
@@ -96,10 +96,10 @@ class ApiAccess(CustomDjangoCassandraModel):
     response_status = columns.SmallInt(required=True)
 
     response_body = columns.Text(required=True)
-    """ The JSON the server responded to the client. If the response is not 
+    """ The JSON the server responded to the client. If the response is not
     a JSON response, the body will be replaced by a <<<Streaming>>> text if
     the request is in steamming, or  <<<Not JSON>>> in other case.
-    
+
     """
 
     run_time = columns.Integer(required=True)

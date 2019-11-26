@@ -47,6 +47,8 @@ class Common(Configuration):
     EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "dev@domain.com")
     EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "***")
 
+    DSE_SUPPORT = os.getenv("DSE_SUPPORT", "True") == "True"
+
     # SECURITY WARNING: App Engine's security features ensure that it is
     # safe to have ALLOWED_HOSTS = ['*'] when the app is deployed. If you
     # deploy a Django app not on App Engine, make sure to set an appropriate
@@ -387,7 +389,10 @@ class Common(Configuration):
 
         # https://www.django-rest-framework.org/api-guide/fields/#decimalfield
         # To use decimal as representation by default
-        'COERCE_DECIMAL_TO_STRING': False
+        'COERCE_DECIMAL_TO_STRING': False,
+
+        'EXCEPTION_HANDLER':
+            'caravaggio_rest_api.drf.exceptions.caravaggio_exception_handler'
     }
 
     ACCOUNT_USER_MODEL_USERNAME_FIELD = None

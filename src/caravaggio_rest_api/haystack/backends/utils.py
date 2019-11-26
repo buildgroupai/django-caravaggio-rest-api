@@ -103,8 +103,7 @@ class CaravaggioSearchPaginator(object):
                 (0 < len(self.results['groups']) <= valid_limit)
         else:
             return self.results is None or self.cursorMark != \
-                   self.results[
-                       CaravaggioSearchPaginator.NEXT_CURSORMARK_FIELD]
+                self.results[CaravaggioSearchPaginator.NEXT_CURSORMARK_FIELD]
 
     def next(self):
 
@@ -119,8 +118,8 @@ class CaravaggioSearchPaginator(object):
                 self.search_kwargs[str('start_offset')] = self.loaded_docs
 
                 self.search_kwargs['end_offset'] = self.loaded_docs + (
-                    self.limit if self.limit is not None and
-                    self.limit < self.max_limit
+                    self.limit if self.limit is not None and (
+                        self.limit < self.max_limit)
                     else self.max_limit)
             else:
 

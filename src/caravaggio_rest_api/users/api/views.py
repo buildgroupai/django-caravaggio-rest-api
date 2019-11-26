@@ -95,11 +95,13 @@ class OrganizationViewSet(CaravaggioDjangoModelViewSet):
         'updated': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
         'date_deactivated': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
 
-        #'all_members': CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
-        # 'members__user': CaravaggioDjangoModelViewSet.MULTIPLE_RELATIONSHIP_OPERATORS_ALL,
-        #'administrators':
+        # 'all_members':
+        #   CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
+        # 'members__user':
+        #   CaravaggioDjangoModelViewSet.MULTIPLE_RELATIONSHIP_OPERATORS_ALL,
+        # 'administrators':
         #    CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
-        #'restricted_members':
+        # 'restricted_members':
         #    CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
 
         'client': CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
@@ -194,8 +196,8 @@ class OrganizationViewSet(CaravaggioDjangoModelViewSet):
         if self.request.user.is_staff:
             return CaravaggioOrganization.objects.all()
         elif self.request.user.is_client_staff:
-           return CaravaggioOrganization.objects.filter(
-               client=self.request.user.client.id)
+            return CaravaggioOrganization.objects.filter(
+                client=self.request.user.client.id)
         else:
             return self.request.user.owner_of.union(
                 self.request.user.administrator_of.all())
@@ -248,6 +250,7 @@ class UserViewSet(CaravaggioDjangoModelViewSet):
                     self.request.user.administrator_of.all()).values(
                     'id').all())
             return CaravaggioUser.objects.filter(
+                client=self.request.user.client.id,
                 id__in=user_organizations.values("all_members"))
 
 
@@ -274,15 +277,6 @@ class AdminAuthToken(ObtainAuthToken):
     if coreapi is not None and coreschema is not None:
         schema = ManualSchema(
             fields=[
-                coreapi.Field(
-                    name="client_id",
-                    required=True,
-                    location='form',
-                    schema=coreschema.String(
-                        title="Client Id",
-                        description="Valid client id",
-                    ),
-                ),
                 coreapi.Field(
                     name="email",
                     required=True,

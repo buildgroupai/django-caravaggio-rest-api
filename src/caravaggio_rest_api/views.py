@@ -12,14 +12,13 @@ from drf_yasg import openapi
 
 
 schema_view = get_schema_view(
-   openapi.Info(
-      title=settings.CARAVAGGIO_API_TITLE,
-      default_version=settings.CARAVAGGIO_API_VERSION,
-      description=settings.CARAVAGGIO_API_DESCRIPTION,
-      terms_of_service=settings.CARAVAGGIO_API_TERMS_URL,
-      contact=openapi.Contact(email=settings.CARAVAGGIO_API_CONTACT),
-      license=openapi.License(name=settings.CARAVAGGIO_API_LICENSE),
-   ),
-   public=True,
-   permission_classes=(AllowAny,),
+    info=openapi.Info(
+        title=settings.CARAVAGGIO_API_TITLE,
+        default_version=settings.CARAVAGGIO_API_VERSION,
+        description=settings.CARAVAGGIO_API_DESCRIPTION,
+        terms_of_service=settings.CARAVAGGIO_API_TERMS_URL,
+        contact=openapi.Contact(email=settings.CARAVAGGIO_API_CONTACT),
+        license=openapi.License(name=settings.CARAVAGGIO_API_LICENSE)),
+    public=True,
+    permission_classes=(AllowAny,)
 )

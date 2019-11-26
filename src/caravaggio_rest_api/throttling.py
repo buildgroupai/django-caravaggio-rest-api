@@ -15,7 +15,7 @@ class CacheUserRateThrottle(UserRateThrottle):
     """
 
     # Using the localmem cache
-    cache = caches["mem_cache"]
+    cache = caches["deafult"]
 
     # Using a key similar to the one used in the old version (tastypie)
     cache_format = '%(scope)s_%(identifier)s_accesses'

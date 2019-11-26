@@ -16,8 +16,8 @@ class ClientAdminPermission(permissions.BasePermission):
         if isinstance(request.user, AnonymousUser):
             return False
 
-        permission = bool((request.user and request.user.is_staff) or
-                    (request.user and request.user.is_client_staff))
+        permission = bool((request.user and request.user.is_staff) or (
+            request.user and request.user.is_client_staff))
 
         return permission
 
@@ -32,10 +32,10 @@ class OrganizationAdminPermission(permissions.BasePermission):
         if isinstance(request.user, AnonymousUser):
             return False
 
-        permission = bool((request.user and request.user.is_staff) or
-                          (request.user and request.user.is_client_staff) or
-                          (request.user.owner_of.count()) or
-                          (request.user.administrator_of.count()))
+        permission = bool((request.user and request.user.is_staff) or (
+            request.user and request.user.is_client_staff) or (
+            request.user.owner_of.count()) or (
+            request.user.administrator_of.count()))
 
         return permission
 
