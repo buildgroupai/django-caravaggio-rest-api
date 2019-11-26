@@ -192,16 +192,48 @@ New Features
 	                       "country_code", "stock_symbol")
 
 
-- A custom exception handler has been added to DRF to add more information
-to the error message the platform is sending to the client. The handler has
-been defined in
-`caravaggio_rest_api.drf.exceptions.caravaggio_exception_handler`. This handler
+- A custom Router to have a better control of the operations available per `ViewSet`:
+
+.. code-block:: python
+   :linenos:
+
+   from django.conf import settings
+   from django.conf.urls import url, include
+
+   from caravaggio_rest_api.example.company.api.views import \
+       CompanyViewSet, CompanySearchViewSet, CompanyGEOSearchViewSet
+
+   from caravaggio_rest_api.drf.routers import CaravaggioRouter
+      
+   api_SEARCH_COMPANY = CaravaggioRouter(actions=["list"])
+
+   if settings.DSE_SUPPORT:
+       api_SEARCH_COMPANY.register(
+           r'company/search',
+           CompanySearchViewSet,
+           base_name="company-search")
+
+       api_SEARCH_COMPANY.register(
+           r'company/geosearch',
+           CompanyGEOSearchViewSet,
+           base_name="company-geosearch")
+
+   api_COMPANY = CaravaggioRouter(actions=["retrieve", "update", "partial_update"])
+
+   api_COMPANY.register(r'company',
+                        CompanyViewSet, base_name="company")
+
+   urlpatterns = [
+       # Company API version
+       url(r'^',
+           include(api_SEARCH_COMPANY.urls + api_COMPANY.urls),
+           name="company-api"),
+   ]
+
+- A custom exception handler has been added to DRF to add more information to the error message the platform is sending to the client. The handler has been defined in `caravaggio_rest_api.drf.exceptions.caravaggio_exception_handler`. This handler
 adds the following details to the response:
 
-   - `status`: this ensures that all error responses include the HTTP
-   status code in the body of the response.
-
-   The handler has been registered in `settings.py` as follows:
+    - `status`: this ensures that all error responses include the HTTP status code in the body of the response. The handler has been registered in `settings.py` as follows:
 
 .. code-block:: python
    :linenos:
@@ -211,8 +243,7 @@ adds the following details to the response:
             'caravaggio_rest_api.drf.exceptions.caravaggio_exception_handler'
    }
 
-- Ability to overwrite the throttling rates configuration per view declaring
-a field called `throttle_operations`. Example:
+- Ability to overwrite the throttling rates configuration per view declaring a field called `throttle_operations`. Example:
 
 .. code-block:: python
    :linenos:
@@ -223,8 +254,7 @@ a field called `throttle_operations`. Example:
       'list': '10/minute'
    }
 
-- Ability to configure the facets on the request using
-`facet.field.<FIELD_NAME>` parameters. Ex.
+- Ability to configure the facets on the request using `facet.field.<FIELD_NAME>` parameters. Ex.
 
 .. code-block:: shell
 
@@ -236,8 +266,8 @@ a field called `throttle_operations`. Example:
        -H "Content-Type: application/json" \
        -H "Authorization: Token ${CARAVAGGIO_TOKEN}"
 
-- Ability to combine filters and facets to restrict the faceting operation to
-a subset of documents. Ex.
+
+- Ability to combine filters and facets to restrict the faceting operation to a subset of documents. Ex.
 
 .. code-block:: shell
 
