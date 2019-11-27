@@ -53,7 +53,8 @@ class ClientViewSet(CaravaggioDjangoModelViewSet):
         'email': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
         'name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
         'date_joined': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
-        'date_deactivated': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL
+        'date_deactivated': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
+        'organizations_set': CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL
     }
 
 
@@ -95,14 +96,11 @@ class OrganizationViewSet(CaravaggioDjangoModelViewSet):
         'updated': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
         'date_deactivated': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
 
-        # 'all_members':
-        #   CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
-        # 'members__user':
-        #   CaravaggioDjangoModelViewSet.MULTIPLE_RELATIONSHIP_OPERATORS_ALL,
-        # 'administrators':
-        #    CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
-        # 'restricted_members':
-        #    CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
+        'all_members__id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
+        'administrators__id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
+        'members__id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
+        'restricted_members__id':
+            CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
 
         'client': CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
         'client__name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
@@ -226,7 +224,12 @@ class UserViewSet(CaravaggioDjangoModelViewSet):
         'is_client_staff': CaravaggioDjangoModelViewSet.BOOL_OPERATORS_ALL,
         'client': CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL,
         'client__name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
-        'client__id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL
+        'client__id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
+        'organizations__id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
+        'administrator_of__id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
+        'member_of__id': CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL,
+        'restricted_member_of__id':
+            CaravaggioDjangoModelViewSet.PK_OPERATORS_ALL
     }
 
     # Example of query
