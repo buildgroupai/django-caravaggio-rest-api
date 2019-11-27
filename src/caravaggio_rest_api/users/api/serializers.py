@@ -115,9 +115,13 @@ class CaravaggioUserSerializerV1(DynamicFieldsSerializer):
 
         fields = ('id', 'client', 'email', 'password', 'first_name',
                   'last_name', 'is_staff', 'is_client_staff',
-                  'date_joined', 'is_active', 'date_deactivated')
+                  'date_joined', 'is_active', 'date_deactivated',
+                  'organizations',
+                  'administrator_of', 'member_of', 'restricted_member_of')
         read_only_fields = (
             'id', 'client', 'email', 'is_staff',
+            'organizations',
+            'administrator_of', 'member_of', 'restricted_member_of',
             'date_joined', 'date_deactivated')
 
     def create(self, validated_data):
