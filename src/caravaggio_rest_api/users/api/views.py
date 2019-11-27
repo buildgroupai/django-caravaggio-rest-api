@@ -54,7 +54,6 @@ class ClientViewSet(CaravaggioDjangoModelViewSet):
         'name': CaravaggioDjangoModelViewSet.STRING_OPERATORS_ALL,
         'date_joined': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
         'date_deactivated': CaravaggioDjangoModelViewSet.DATE_OPERATORS_ALL,
-        'organizations_set': CaravaggioDjangoModelViewSet.RELATIONSHIP_OPERATORS_ALL
     }
 
 
