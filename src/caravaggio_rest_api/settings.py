@@ -576,8 +576,8 @@ class Staging(Common):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            "HOST": "127.0.0.1",
-            "PORT": "6543",
+            "HOST": Common.DB_HOST,
+            "PORT": Common.DB_PORT,
             'NAME': Common.DB_NAME,
             'USER': Common.DB_USER,
             'PASSWORD': Common.DB_PASSWORD,
