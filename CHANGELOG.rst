@@ -303,6 +303,7 @@ Bug Fixing
 **********
 
 - Fix bug when the results of a search query comes empty. We were accessing to some attributes that are not available when there is no results."
+- Fix bug to serialize UserTypes, the bug occurs when we try to serialize a list of UserTypes or when we have a UserType inside of another UserType.
 
 
 
