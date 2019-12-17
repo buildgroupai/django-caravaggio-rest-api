@@ -26,7 +26,7 @@ class BaseSearchIndex(indexes.SearchIndex):
         pass
 
 
-class ListUserField(indexes.MultiValueField):
+class CaravaggioListField(indexes.MultiValueField):
 
     def convert(self, value):
         value = super().convert(value)

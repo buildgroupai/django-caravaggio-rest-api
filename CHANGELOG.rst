@@ -285,7 +285,7 @@ adds the following details to the response:
        -H "Content-Type: application/json" \
        -H "Authorization: Token ${CARAVAGGIO_TOKEN}"
 
-- Add `ListUserField` to the haystack fields to support list of UserDefinedTypes
+- Add `CaravaggioListField` to the haystack fields to support list of UserDefinedTypes
 
 Improvements or Changes
 ***********************
