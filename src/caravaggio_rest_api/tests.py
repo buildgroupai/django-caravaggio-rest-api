@@ -130,6 +130,19 @@ class CaravaggioBaseTest(TestCase):
         }
         return CaravaggioClient.objects.create(**default_client)
 
+    def create_resource(self, resource, serializer_class, username=None):
+        if not username:
+            username = self.user.username
+
+        request = RequestFactory().get('./fake_path')
+        request.user = get_user_model().objects.get(username=username)
+
+        serializer = serializer_class(
+            data=resource, context={'request': request})
+
+        self.assertTrue(serializer.is_valid())
+        return serializer.create(resource)
+
     @classmethod
     def create_user(cls, email,
                     first_name=None, last_name=None, client=None,

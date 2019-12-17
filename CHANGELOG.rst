@@ -300,6 +300,8 @@ Improvements or Changes
 
 - Tests for Clients (External systems)
 
+- Add a `create_resource` method on the BaseTest to be able to create resources using the serializer
+
 
 Bug Fixing
 **********
