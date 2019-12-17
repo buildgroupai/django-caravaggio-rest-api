@@ -300,7 +300,7 @@ Improvements or Changes
 
 - Tests for Clients (External systems)
 
-- Add a `create_resource` method on the BaseTest to be able to create resources using the serializer
+- Add new parameter to `load_test_data` that indicates that we want to serialize the loaded JSON
 
 
 Bug Fixing
