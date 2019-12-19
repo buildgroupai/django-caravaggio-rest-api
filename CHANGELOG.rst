@@ -285,6 +285,8 @@ adds the following details to the response:
        -H "Content-Type: application/json" \
        -H "Authorization: Token ${CARAVAGGIO_TOKEN}"
 
+- Add `CaravaggioListField` to the haystack fields to support list of UserDefinedTypes
+
 Improvements or Changes
 ***********************
 
@@ -298,11 +300,14 @@ Improvements or Changes
 
 - Tests for Clients (External systems)
 
+- Add new parameter to `load_test_data` that indicates that we want to serialize the loaded JSON
+
 
 Bug Fixing
 **********
 
 - Fix bug when the results of a search query comes empty. We were accessing to some attributes that are not available when there is no results."
+- Fix bug to serialize UserTypes, the bug occurs when we try to serialize a list of UserTypes or when we have a UserType inside of another UserType.
 
 
 

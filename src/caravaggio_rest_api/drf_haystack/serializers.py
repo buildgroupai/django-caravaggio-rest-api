@@ -30,6 +30,9 @@ def _is_nested_proxy_field(field):
     :return: True or False
     :rtype: bool
     """
+    if hasattr(field, "child"):
+        return isinstance(field.child, UserTypeSerializer)
+
     return (
         isinstance(field, UserTypeSerializer)
     )
@@ -82,18 +85,36 @@ def set_instance_values(nested_serializers,
     :return: Same instance with values set.
     :rtype:
     """
-    for __serializer_name, __serializer in nested_serializers_data.items():
-        for __field_name, __field_value in __serializer.items():
-            if _is_nested_proxy_field(
-                    nested_serializers[__serializer_name][__field_name]):
+    def set_attributes(serializer_to_use, serializer_name, _position=None):
+        if _position is not None:
+            serializer = nested_serializers[serializer_name].child
+        else:
+            serializer = nested_serializers[serializer_name]
+
+        userType = getattr(serializer.Meta, '__type__', None)
+        object_user_type = userType(**serializer_to_use)
+        if _position is not None:
+            list_value = getattr(instance, serializer_name)
+            list_value.insert(_position, object_user_type)
+        else:
+            setattr(instance, serializer_name, object_user_type)
+
+        for __field_name, __field_value in serializer_to_use.items():
+            proxy_field = serializer[__field_name]
+            # the serializer is inside the _field property
+            if _is_nested_proxy_field(proxy_field._field):
                 set_instance_values({
-                    __field_name: nested_serializers[
-                        __serializer_name][__field_name]},
+                    __field_name: proxy_field},
                     {__field_name: __field_value},
-                    instance)
-        userType = getattr(
-            nested_serializers[__serializer_name].Meta, '__type__', None)
-        setattr(instance, __serializer_name, userType(**__serializer))
+                    object_user_type)
+
+    for __serializer_name, __serializer in nested_serializers_data.items():
+        if isinstance(__serializer, (list, set)):
+            for position, __single_serializer in enumerate(__serializer):
+                set_attributes(__single_serializer, __serializer_name,
+                               position)
+        else:
+            set_attributes(__serializer, __serializer_name)
 
 
 def deserialize_instance(serializer, model):
