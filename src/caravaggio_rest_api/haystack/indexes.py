@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*
 # Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
+import json
+
 from haystack import indexes
 
 
@@ -22,3 +24,18 @@ class BaseSearchIndex(indexes.SearchIndex):
         #    obj.foundation_date, obj.stock_symbol
         # ))
         pass
+
+
+class CaravaggioListField(indexes.MultiValueField):
+
+    def convert(self, value):
+        value = super().convert(value)
+
+        if not value:
+            return value
+
+        new_value = []
+        for _value in value:
+            new_value.append(json.loads(_value))
+
+        return new_value

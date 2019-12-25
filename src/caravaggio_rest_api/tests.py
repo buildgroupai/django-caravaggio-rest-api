@@ -8,6 +8,7 @@ import logging
 from collections import OrderedDict
 from decimal import Decimal
 
+from caravaggio_rest_api.drf_haystack.serializers import deserialize_instance
 from django.contrib.auth import get_user_model
 from django.test.client import RequestFactory
 from rest_framework.authtoken.models import Token
@@ -78,7 +79,7 @@ class CaravaggioBaseTest(TestCase):
 
     @classmethod
     def load_test_data(cls, file, serializer_class=None,
-                       username=None, type="JSON"):
+                       username=None, type="JSON", return_pure_json=True):
 
         logging.info("Loading data from file {}".format(file))
 
@@ -96,6 +97,7 @@ class CaravaggioBaseTest(TestCase):
                              format(serializer_class))
                 has_errors = False
                 errors_by_resource = {}
+                object_json = []
                 for index, resource in enumerate(data):
                     serializer = serializer_class(
                         data=resource, context={'request': request})
@@ -104,12 +106,20 @@ class CaravaggioBaseTest(TestCase):
                         errors_by_resource["{}".format(index)] = \
                             serializer.errors
 
+                    if not return_pure_json:
+                        instance = deserialize_instance(serializer,
+                                                        serializer.Meta.model)
+                        object_json.append(instance)
+
                 if has_errors:
                     raise AssertionError(
                         "There are some errors in the json data of the test",
                         errors_by_resource)
+                elif not return_pure_json:
+                    return object_json
 
-            return data
+            if return_pure_json:
+                return data
         elif type == "CSV":
             data = []
             with open(file, 'r') as f:
