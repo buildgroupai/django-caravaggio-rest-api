@@ -109,6 +109,8 @@ def set_instance_values(nested_serializers,
                     object_user_type)
 
     for __serializer_name, __serializer in nested_serializers_data.items():
+        if __serializer is None:
+            continue
         if isinstance(__serializer, (list, set)):
             for position, __single_serializer in enumerate(__serializer):
                 set_attributes(__single_serializer, __serializer_name,
