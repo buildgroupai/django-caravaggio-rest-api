@@ -95,7 +95,10 @@ def set_instance_values(nested_serializers,
         object_user_type = userType(**serializer_to_use)
         if _position is not None:
             list_value = getattr(instance, serializer_name)
-            list_value.insert(_position, object_user_type)
+            if _position < len(list_value):
+                list_value[_position] = object_user_type
+            else:
+                list_value.insert(_position, object_user_type)
         else:
             setattr(instance, serializer_name, object_user_type)
 
