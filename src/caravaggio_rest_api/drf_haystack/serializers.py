@@ -168,19 +168,19 @@ class BaseCachedSerializerMixin(CachedSerializerMixin):
             if isinstance(instance, SearchResult) \
             else get_cache_key(instance, self.__class__, protocol)
 
-    def to_representation(self, instance):
+    def to_representation(self, instance, use_cache=True):
         """
         Checks if the representation of instance is cached and adds to cache
         if is not.
         """
         key = self._get_cache_key(instance)
-        if key:
+        if key and use_cache:
             cached = cache.get(key)
             if cached:
                 return cached
 
         result = super(CachedSerializerMixin, self).to_representation(instance)
-        if key:
+        if key and use_cache:
             cache.set(key, result, api_settings.DEFAULT_CACHE_TIMEOUT)
         return result
 
