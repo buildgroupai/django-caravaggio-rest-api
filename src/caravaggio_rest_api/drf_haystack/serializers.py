@@ -95,7 +95,10 @@ def set_instance_values(nested_serializers,
         object_user_type = userType(**serializer_to_use)
         if _position is not None:
             list_value = getattr(instance, serializer_name)
-            list_value.insert(_position, object_user_type)
+            if _position < len(list_value):
+                list_value[_position] = object_user_type
+            else:
+                list_value.insert(_position, object_user_type)
         else:
             setattr(instance, serializer_name, object_user_type)
 
@@ -109,6 +112,8 @@ def set_instance_values(nested_serializers,
                     object_user_type)
 
     for __serializer_name, __serializer in nested_serializers_data.items():
+        if __serializer is None:
+            continue
         if isinstance(__serializer, (list, set)):
             for position, __single_serializer in enumerate(__serializer):
                 set_attributes(__single_serializer, __serializer_name,
@@ -163,19 +168,19 @@ class BaseCachedSerializerMixin(CachedSerializerMixin):
             if isinstance(instance, SearchResult) \
             else get_cache_key(instance, self.__class__, protocol)
 
-    def to_representation(self, instance):
+    def to_representation(self, instance, use_cache=True):
         """
         Checks if the representation of instance is cached and adds to cache
         if is not.
         """
         key = self._get_cache_key(instance)
-        if key:
+        if key and use_cache:
             cached = cache.get(key)
             if cached:
                 return cached
 
         result = super(CachedSerializerMixin, self).to_representation(instance)
-        if key:
+        if key and use_cache:
             cache.set(key, result, api_settings.DEFAULT_CACHE_TIMEOUT)
         return result
 
