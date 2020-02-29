@@ -217,8 +217,16 @@ class CaravaggioFilterQueryBuilder(FilterQueryBuilder):
                 if base_param in ser_fields:
                     field_repr = ser_fields[base_param]
                     if isinstance(field_repr, UUIDField):
-                        value[0] = field_repr.to_representation(
-                            field_repr.to_internal_value(value[0]))
+                        if len(param_parts) > 1 and param_parts[-1] in (
+                        'in', 'range'):
+                            value = [field_repr.to_representation(
+                                field_repr.to_internal_value(value))
+                                for value in list(
+                                    self.tokenize(
+                                        value, self.view.lookup_sep))]
+                        else:
+                            value[0] = field_repr.to_representation(
+                                field_repr.to_internal_value(value[0]))
             # END CARAVAGGIO
 
             field_queries = []
