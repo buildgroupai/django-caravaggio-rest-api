@@ -49,6 +49,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from caravaggio_rest_api.haystack.query import CaravaggioSearchQuerySet
+from caravaggio_rest_api.pagination import CustomPageNumberPagination
 
 from caravaggio_rest_api.drf_haystack.filters import \
     HaystackOrderingFilter, \
@@ -58,10 +59,7 @@ from caravaggio_rest_api.drf_haystack.filters import \
 LOGGER = logging.getLogger("caravaggio_rest_api")
 
 
-class CaravaggioHaystackPageNumberPagination(PageNumberPagination):
-
-    page_size_query_param = "limit"
-
+class CaravaggioHaystackPageNumberPagination(CustomPageNumberPagination):
     def get_paginated_response(self, data):
 
         if data and len(data):
