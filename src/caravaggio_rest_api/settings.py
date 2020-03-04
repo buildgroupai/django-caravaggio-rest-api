@@ -343,7 +343,7 @@ class Common(Configuration):
     REST_FRAMEWORK = {
         'PAGE_SIZE': 10,
         'DEFAULT_PAGINATION_CLASS':
-            'rest_framework.pagination.PageNumberPagination',
+            'caravaggio_rest_api.pagination.CustomPageNumberPagination',
 
         'DEFAULT_THROTTLE_CLASSES': (
             'rest_framework.throttling.AnonRateThrottle',
