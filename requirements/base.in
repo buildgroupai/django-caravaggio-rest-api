@@ -1,0 +1,31 @@
+psycopg2-binary
+dse-driver
+#cassandra-driver
+
+Django<3
+django-redis
+django-configurations
+django-registration
+# djangorestframework>=3.7,<3.10    # imposed by drf-haystack
+djangorestframework-queryfields
+djangorestframework-filters==1.0.0.dev0
+django-rest-auth
+
+#-- for openapi
+drf-yasg
+PyYAML
+Markdown
+
+#-- solr queries
+drf-haystack
+pysolr
+#solrq
+
+#-- geospatial queries
+GDAL
+geopy
+
+fuzzywuzzy
+
+git+https://github.com/intellstartup/django-cassandra-engine@bgds-1#egg=django-cassandra-engine-0
+git+https://github.com/intellstartup/django-rest-framework-cache@master#egg=rest-framework-cache-0
