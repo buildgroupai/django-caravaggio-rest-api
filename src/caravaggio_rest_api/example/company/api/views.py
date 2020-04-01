@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*
-from caravaggio_rest_api.drf_haystack.viewsets import \
-    CaravaggioCassandraModelViewSet, \
-    CaravaggioHaystackGEOSearchViewSet, \
-    CaravaggioHaystackFacetSearchViewSet
+from caravaggio_rest_api.drf_haystack.viewsets import (
+    CaravaggioCassandraModelViewSet,
+    CaravaggioHaystackGEOSearchViewSet,
+    CaravaggioHaystackFacetSearchViewSet,
+)
 
 # from rest_framework.authentication import \
 #    TokenAuthentication, SessionAuthentication
 # from rest_framework.permissions import IsAuthenticated
 
-from caravaggio_rest_api.example.company.api.serializers import \
-    CompanyFacetSerializerV1, CompanyGEOSearchSerializerV1
+from caravaggio_rest_api.example.company.api.serializers import CompanyFacetSerializerV1, CompanyGEOSearchSerializerV1
 from caravaggio_rest_api.example.company.models import Company
-from caravaggio_rest_api.example.company.api.serializers import \
-    CompanySerializerV1, CompanySearchSerializerV1
+from caravaggio_rest_api.example.company.api.serializers import CompanySerializerV1, CompanySearchSerializerV1
 
 
 class CompanyViewSet(CaravaggioCassandraModelViewSet):
@@ -54,9 +53,7 @@ class CompanySearchViewSet(CaravaggioHaystackFacetSearchViewSet):
     # the search requests adding fields like text, autocomplete, score, etc.
     results_serializer_class = CompanySerializerV1
 
-    ordering_fields = ("_id",
-                       "created_at", "updated_at", "foundation_date",
-                       "country_code", "stock_symbol")
+    ordering_fields = ("_id", "created_at", "updated_at", "foundation_date", "country_code", "stock_symbol")
 
 
 class CompanyGEOSearchViewSet(CaravaggioHaystackGEOSearchViewSet):
@@ -83,6 +80,4 @@ class CompanyGEOSearchViewSet(CaravaggioHaystackGEOSearchViewSet):
     # the search requests adding fields like text, autocomplete, score, etc.
     results_serializer_class = CompanySerializerV1
 
-    ordering_fields = ("_id",
-                       "created_at", "updated_at", "foundation_date",
-                       "country_code", "stock_symbol")
+    ordering_fields = ("_id", "created_at", "updated_at", "foundation_date", "country_code", "stock_symbol")

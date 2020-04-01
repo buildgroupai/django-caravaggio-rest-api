@@ -9,12 +9,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 class DynamicFieldsSerializer(serializers.ModelSerializer):
-
     def __init__(self, *args, **kwargs):
-        fields = kwargs.pop('fields', set())
+        fields = kwargs.pop("fields", set())
         super().__init__(*args, **kwargs)
 
-        if fields and '__all__' not in fields:
+        if fields and "__all__" not in fields:
             all_fields = set(self.fields.keys())
             for not_requested in all_fields - set(fields):
                 self.fields.pop(not_requested)

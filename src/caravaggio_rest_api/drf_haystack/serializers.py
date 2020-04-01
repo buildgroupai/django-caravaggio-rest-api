@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*
 # Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
-from drf_haystack.serializers import \
-    HaystackSerializer, HaystackFacetSerializer
+from drf_haystack.serializers import HaystackSerializer, HaystackFacetSerializer
 from rest_framework import serializers, fields
 from rest_framework_cache.cache import cache
 from drf_queryfields import QueryFieldsMixin
@@ -33,15 +32,10 @@ def _is_nested_proxy_field(field):
     if hasattr(field, "child"):
         return isinstance(field.child, UserTypeSerializer)
 
-    return (
-        isinstance(field, UserTypeSerializer)
-    )
+    return isinstance(field, UserTypeSerializer)
 
 
-def extract_nested_serializers(serializer,
-                               validated_data,
-                               nested_serializers=None,
-                               nested_serializers_data=None):
+def extract_nested_serializers(serializer, validated_data, nested_serializers=None, nested_serializers_data=None):
     """Extract nested serializers.
     :param serializer: Serializer instance.
     :param validated_data: Validated data.
@@ -60,20 +54,15 @@ def extract_nested_serializers(serializer,
         nested_serializers_data = {}
 
     for __field_name, __field in serializer.fields.items():
-        if _is_nested_proxy_field(__field) \
-                and __field_name in validated_data:
-            __serializer_data = validated_data.pop(
-                __field_name
-            )
+        if _is_nested_proxy_field(__field) and __field_name in validated_data:
+            __serializer_data = validated_data.pop(__field_name)
             nested_serializers[__field_name] = __field
             nested_serializers_data[__field_name] = __serializer_data
 
     return nested_serializers, nested_serializers_data
 
 
-def set_instance_values(nested_serializers,
-                        nested_serializers_data,
-                        instance):
+def set_instance_values(nested_serializers, nested_serializers_data, instance):
     """Set values on instance.
     Does not perform any save actions.
     :param nested_serializers: Nested serializers.
@@ -85,13 +74,14 @@ def set_instance_values(nested_serializers,
     :return: Same instance with values set.
     :rtype:
     """
+
     def set_attributes(serializer_to_use, serializer_name, _position=None):
         if _position is not None:
             serializer = nested_serializers[serializer_name].child
         else:
             serializer = nested_serializers[serializer_name]
 
-        userType = getattr(serializer.Meta, '__type__', None)
+        userType = getattr(serializer.Meta, "__type__", None)
         object_user_type = userType(**serializer_to_use)
         if _position is not None:
             list_value = getattr(instance, serializer_name)
@@ -106,67 +96,58 @@ def set_instance_values(nested_serializers,
             proxy_field = serializer[__field_name]
             # the serializer is inside the _field property
             if _is_nested_proxy_field(proxy_field._field):
-                set_instance_values({
-                    __field_name: proxy_field},
-                    {__field_name: __field_value},
-                    object_user_type)
+                set_instance_values({__field_name: proxy_field}, {__field_name: __field_value}, object_user_type)
 
     for __serializer_name, __serializer in nested_serializers_data.items():
         if __serializer is None:
             continue
         if isinstance(__serializer, (list, set)):
             for position, __single_serializer in enumerate(__serializer):
-                set_attributes(__single_serializer, __serializer_name,
-                               position)
+                set_attributes(__single_serializer, __serializer_name, position)
         else:
             set_attributes(__serializer, __serializer_name)
 
 
 def deserialize_instance(serializer, model):
     # Collect information on nested serializers
-    __nested_serializers, __nested_serializers_data = \
-        extract_nested_serializers(
-            serializer,
-            serializer.validated_data,
-        )
+    __nested_serializers, __nested_serializers_data = extract_nested_serializers(serializer, serializer.validated_data,)
 
     # Create instance, but don't save it yet
     instance = model(**serializer.validated_data)
 
     # Assign fields to the `instance` one by one
-    set_instance_values(
-        __nested_serializers,
-        __nested_serializers_data,
-        instance
-    )
+    set_instance_values(__nested_serializers, __nested_serializers_data, instance)
 
     return instance
 
 
 def get_haystack_cache_key(instance, serializer, protocol):
     """Get cache key of instance"""
-    params = {"id": instance.pk,
-              "app_label": instance.model._meta.app_label,
-              "model_name": instance.model._meta.object_name,
-              "serializer_name": serializer.__name__,
-              "protocol": protocol}
+    params = {
+        "id": instance.pk,
+        "app_label": instance.model._meta.app_label,
+        "model_name": instance.model._meta.object_name,
+        "serializer_name": serializer.__name__,
+        "protocol": protocol,
+    }
 
     return api_settings.SERIALIZER_CACHE_KEY_FORMAT.format(**params)
 
 
 class BaseCachedSerializerMixin(CachedSerializerMixin):
-
     def _get_cache_key(self, instance):
-        request = self.context.get('request')
-        protocol = request.scheme if request else 'http'
+        request = self.context.get("request")
+        protocol = request.scheme if request else "http"
 
         # We bypass caching when using `fields` parameter in the requests
         if "fields" in request.GET:
             return None
 
-        return get_haystack_cache_key(instance, self.__class__, protocol) \
-            if isinstance(instance, SearchResult) \
+        return (
+            get_haystack_cache_key(instance, self.__class__, protocol)
+            if isinstance(instance, SearchResult)
             else get_cache_key(instance, self.__class__, protocol)
+        )
 
     def to_representation(self, instance, use_cache=True):
         """
@@ -190,61 +171,41 @@ class UserTypeSerializer(serializers.Serializer):
 
 
 class DynamicFieldsSerializer(serializers.HyperlinkedModelSerializer):
-
     def __init__(self, *args, **kwargs):
-        fields = kwargs.pop('fields', set())
+        fields = kwargs.pop("fields", set())
         super().__init__(*args, **kwargs)
 
-        if fields and '__all__' not in fields:
+        if fields and "__all__" not in fields:
             all_fields = set(self.fields.keys())
             for not_requested in all_fields - set(fields):
                 self.fields.pop(not_requested)
 
 
-class CassandraModelSerializer(QueryFieldsMixin,
-                               DynamicFieldsSerializer):
+class CassandraModelSerializer(QueryFieldsMixin, DynamicFieldsSerializer):
 
-    serializers.ModelSerializer.serializer_field_mapping[
-        columns.UUID] = fields.UUIDField
-    serializers.ModelSerializer.serializer_field_mapping[columns.Integer] = \
-        fields.IntegerField
-    serializers.ModelSerializer.serializer_field_mapping[columns.SmallInt] = \
-        fields.IntegerField
-    serializers.ModelSerializer.serializer_field_mapping[columns.BigInt] = \
-        fields.IntegerField
-    serializers.ModelSerializer.serializer_field_mapping[columns.DateTime] = \
-        dse_fields.CassandraDateTimeField
-    serializers.ModelSerializer.serializer_field_mapping[columns.Time] = \
-        fields.TimeField
-    serializers.ModelSerializer.serializer_field_mapping[columns.Date] = \
-        dse_fields.CassandraDateField
-    serializers.ModelSerializer.serializer_field_mapping[columns.Text] = \
-        fields.CharField
-    serializers.ModelSerializer.serializer_field_mapping[columns.Float] = \
-        fields.FloatField
-    serializers.ModelSerializer.serializer_field_mapping[columns.Double] = \
-        fields.FloatField
-    serializers.ModelSerializer.serializer_field_mapping[Decimal] = \
-        fields.DecimalField
-    serializers.ModelSerializer.serializer_field_mapping[columns.Boolean] = \
-        fields.BooleanField
-    serializers.ModelSerializer.serializer_field_mapping[columns.Blob] = \
-        fields.FileField
-    serializers.ModelSerializer.serializer_field_mapping[columns.List] = \
-        fields.ListField
-    serializers.ModelSerializer.serializer_field_mapping[KeyEncodedMap] = \
-        fields.DictField
+    serializers.ModelSerializer.serializer_field_mapping[columns.UUID] = fields.UUIDField
+    serializers.ModelSerializer.serializer_field_mapping[columns.Integer] = fields.IntegerField
+    serializers.ModelSerializer.serializer_field_mapping[columns.SmallInt] = fields.IntegerField
+    serializers.ModelSerializer.serializer_field_mapping[columns.BigInt] = fields.IntegerField
+    serializers.ModelSerializer.serializer_field_mapping[columns.DateTime] = dse_fields.CassandraDateTimeField
+    serializers.ModelSerializer.serializer_field_mapping[columns.Time] = fields.TimeField
+    serializers.ModelSerializer.serializer_field_mapping[columns.Date] = dse_fields.CassandraDateField
+    serializers.ModelSerializer.serializer_field_mapping[columns.Text] = fields.CharField
+    serializers.ModelSerializer.serializer_field_mapping[columns.Float] = fields.FloatField
+    serializers.ModelSerializer.serializer_field_mapping[columns.Double] = fields.FloatField
+    serializers.ModelSerializer.serializer_field_mapping[Decimal] = fields.DecimalField
+    serializers.ModelSerializer.serializer_field_mapping[columns.Boolean] = fields.BooleanField
+    serializers.ModelSerializer.serializer_field_mapping[columns.Blob] = fields.FileField
+    serializers.ModelSerializer.serializer_field_mapping[columns.List] = fields.ListField
+    serializers.ModelSerializer.serializer_field_mapping[KeyEncodedMap] = fields.DictField
 
     # The DSE/Cassandra Decimal column is not supported by the DRF-Haystack
     # fields.Decimal serializer, we need to use fields.CharField instead.
     # See: https://github.com/inonit/drf-haystack/issues/116
-    serializers.ModelSerializer.serializer_field_mapping[columns.Decimal] = \
-        fields.CharField
+    serializers.ModelSerializer.serializer_field_mapping[columns.Decimal] = fields.CharField
 
     class Meta:
-        error_status_codes = {
-            HTTP_400_BAD_REQUEST: "Bad Request"
-        }
+        error_status_codes = {HTTP_400_BAD_REQUEST: "Bad Request"}
 
     def create(self, validated_data):
         """Create.
@@ -264,24 +225,13 @@ class CassandraModelSerializer(QueryFieldsMixin,
         :return:
         """
         # Collect information on nested serializers
-        __nested_serializers, __nested_serializers_data = \
-            extract_nested_serializers(
-                self,
-                validated_data,
-            )
+        __nested_serializers, __nested_serializers_data = extract_nested_serializers(self, validated_data,)
 
         # Update the instance
-        instance = super(CassandraModelSerializer, self).update(
-            instance,
-            validated_data
-        )
+        instance = super(CassandraModelSerializer, self).update(instance, validated_data)
 
         # Assign fields to the `instance` one by one
-        set_instance_values(
-            __nested_serializers,
-            __nested_serializers_data,
-            instance
-        )
+        set_instance_values(__nested_serializers, __nested_serializers_data, instance)
 
         # Save the instance and return
         instance.save()
@@ -293,14 +243,9 @@ class CustomHaystackSerializer(HaystackSerializer):
     _abstract = True
 
     class Meta:
-        error_status_codes = {
-            HTTP_400_BAD_REQUEST: 'Bad Request'
-        }
+        error_status_codes = {HTTP_400_BAD_REQUEST: "Bad Request"}
 
 
 class CustomHaystackFacetSerializer(HaystackFacetSerializer):
-
     class Meta:
-        error_status_codes = {
-            HTTP_400_BAD_REQUEST: 'Bad Request'
-        }
+        error_status_codes = {HTTP_400_BAD_REQUEST: "Bad Request"}

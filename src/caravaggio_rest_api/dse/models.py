@@ -15,11 +15,9 @@ except ImportError:
 from datetime import datetime
 
 from django.dispatch import receiver
-from django.db.models.signals import pre_init, post_init, \
-    pre_delete, post_delete, pre_save, post_save
+from django.db.models.signals import pre_init, post_init, pre_delete, post_delete, pre_save, post_save
 
-from django_cassandra_engine.models import DjangoCassandraModel, \
-    DjangoCassandraModelMetaClass
+from django_cassandra_engine.models import DjangoCassandraModel, DjangoCassandraModelMetaClass
 
 from rest_framework_cache.utils import clear_for_instance
 
@@ -38,8 +36,9 @@ class ExactOperator(BaseWhereOperator):
     This problem was caused in the Master classes, in the _id field when we
     POST a new master. This _id was an assigned ID.
     """
+
     symbol = "EXACT"
-    cql_symbol = '='
+    cql_symbol = "="
 
 
 class CustomDjangoCassandraModelMetaClass(DjangoCassandraModelMetaClass):
@@ -62,9 +61,7 @@ class CustomDjangoCassandraModelMetaClass(DjangoCassandraModelMetaClass):
         return klass
 
 
-class CustomDjangoCassandraModel(
-    six.with_metaclass(CustomDjangoCassandraModelMetaClass,
-                       DjangoCassandraModel)):
+class CustomDjangoCassandraModel(six.with_metaclass(CustomDjangoCassandraModelMetaClass, DjangoCassandraModel)):
     """
     The original DjangoCassandraModel does not implement the callback methods
     something we need, for instance, if we want to clean the DRF cache after
@@ -91,14 +88,12 @@ class CustomDjangoCassandraModel(
         return result
 
     def save(self):
-        pre_save.send(
-            sender=self.__class__, instance=self, created=False)
+        pre_save.send(sender=self.__class__, instance=self, created=False)
 
         result = super().save()
 
         post_save.send(
-            sender=self.__class__, instance=self, created=False,
-            raw=False, update_fields=self.get_changed_columns(),
+            sender=self.__class__, instance=self, created=False, raw=False, update_fields=self.get_changed_columns(),
         )
 
         # We also clean the DRF cache
@@ -107,14 +102,12 @@ class CustomDjangoCassandraModel(
         return result
 
     def update(self, **values):
-        pre_save.send(
-            sender=self.__class__, instance=self, created=False)
+        pre_save.send(sender=self.__class__, instance=self, created=False)
 
         result = super().update(**values)
 
         post_save.send(
-            sender=self.__class__, instance=self, created=False,
-            raw=False, update_fields=self.get_changed_columns(),
+            sender=self.__class__, instance=self, created=False, raw=False, update_fields=self.get_changed_columns(),
         )
 
         # We also clean the DRF cache
@@ -138,6 +131,7 @@ class BaseEntity(CustomDjangoCassandraModel):
     """
     The common field that will be shared between all the managed entities
     """
+
     __abstract__ = True
 
     # A unique identifier of the entity
@@ -152,7 +146,7 @@ class BaseEntity(CustomDjangoCassandraModel):
     deleted_reason = columns.Text()
 
     class Meta:
-        get_pk_field = '_id'
+        get_pk_field = "_id"
 
 
 # We need to set the new value for the changed_at field

@@ -51,10 +51,11 @@ from rest_framework.response import Response
 from caravaggio_rest_api.haystack.query import CaravaggioSearchQuerySet
 from caravaggio_rest_api.pagination import CustomPageNumberPagination
 
-from caravaggio_rest_api.drf_haystack.filters import \
-    HaystackOrderingFilter, \
-    CaravaggioHaystackFilter, \
-    CaravaggioHaystackFacetFilter
+from caravaggio_rest_api.drf_haystack.filters import (
+    HaystackOrderingFilter,
+    CaravaggioHaystackFilter,
+    CaravaggioHaystackFacetFilter,
+)
 
 LOGGER = logging.getLogger("caravaggio_rest_api")
 
@@ -75,45 +76,40 @@ class CaravaggioHaystackPageNumberPagination(CustomPageNumberPagination):
                 except SpatialError as ex:
                     pass
 
-                if "request" in data.serializer.context and (
-                        "fields" in data.serializer.context["request"].GET):
+                if "request" in data.serializer.context and ("fields" in data.serializer.context["request"].GET):
                     filter_fields = list(model._primary_keys.keys())
-                    selected_fields = data.serializer.context[
-                        "request"].GET["fields"].split(",")
+                    selected_fields = data.serializer.context["request"].GET["fields"].split(",")
                     filter_fields.extend(list(selected_fields))
-                    instance = model(**dict(zip(
-                        filter_fields,
-                        model.objects.all().filter(
-                            **get_primary_keys_values(
-                                instance, instance.model)).values_list(
-                            *filter_fields, flat=False).first())))
+                    instance = model(
+                        **dict(
+                            zip(
+                                filter_fields,
+                                model.objects.all()
+                                .filter(**get_primary_keys_values(instance, instance.model))
+                                .values_list(*filter_fields, flat=False)
+                                .first(),
+                            )
+                        )
+                    )
 
                     # Used by the caching process
                     instance._caravaggio_fields = selected_fields
                     loaded_objects.append(instance)
                 else:
                     loaded_objects.append(
-                        model.objects.all().
-                        filter(**get_primary_keys_values(
-                            instance, instance.model)).
-                        first())
+                        model.objects.all().filter(**get_primary_keys_values(instance, instance.model)).first()
+                    )
 
             # Get the results serializer from the original View that originated
             # the current response
-            results_serializer = \
-                data.serializer.context['view'].results_serializer_class
+            results_serializer = data.serializer.context["view"].results_serializer_class
 
-            extra_args = {
-                "context": data.serializer.context
-            }
+            extra_args = {"context": data.serializer.context}
 
-            if "request" in data.serializer.context and (
-                    "fields" in data.serializer.context["request"].GET):
-                extra_args["fields"] = data.serializer.context[
-                    "request"].GET["fields"].split(",")
+            if "request" in data.serializer.context and ("fields" in data.serializer.context["request"].GET):
+                extra_args["fields"] = data.serializer.context["request"].GET["fields"].split(",")
 
-            serializer = results_serializer(
-                loaded_objects, many=True, **extra_args)
+            serializer = results_serializer(loaded_objects, many=True, **extra_args)
             detail_data = serializer.data
 
             # Copy the relevance score into the model object
@@ -127,19 +123,20 @@ class CaravaggioHaystackPageNumberPagination(CustomPageNumberPagination):
 
             data = detail_data
 
-        return Response(OrderedDict([
-            ('total', self.page.paginator.count),
-            ('page', len(data)),
-            ('next', self.get_next_link()),
-            ('previous', self.get_previous_link()),
-            ('results', data)
-        ]))
+        return Response(
+            OrderedDict(
+                [
+                    ("total", self.page.paginator.count),
+                    ("page", len(data)),
+                    ("next", self.get_next_link()),
+                    ("previous", self.get_previous_link()),
+                    ("results", data),
+                ]
+            )
+        )
 
 
-class CaravaggioCassandraModelViewSet(
-        CaravaggioThrottledViewSet,
-        viewsets.ModelViewSet,
-        RequestLogViewMixin):
+class CaravaggioCassandraModelViewSet(CaravaggioThrottledViewSet, viewsets.ModelViewSet, RequestLogViewMixin):
     """ We use this ViewSet as a base class when we are working with and
     endpoint that is directly connected with a Cassandra model class (DSE)
 
@@ -148,13 +145,11 @@ class CaravaggioCassandraModelViewSet(
     the ViewSet as a specific class of CaravaggioHaystackViewSet.
 
     """
+
     filter_backends = []
 
 
-class CaravaggioHaystackModelViewSet(
-        CaravaggioThrottledViewSet,
-        HaystackViewSet,
-        RequestLogViewMixin):
+class CaravaggioHaystackModelViewSet(CaravaggioThrottledViewSet, HaystackViewSet, RequestLogViewMixin):
     """ We use this ViewSet as a base class when we are working with and
     endpoint that is directly connected with a Cassandra model class and
     has an index defined in the `search_indexes.py` file for it, activating
@@ -189,15 +184,14 @@ class CaravaggioHaystackModelViewSet(
         <https://drf-haystack.readthedocs.io/en/latest/index.html>
 
     """
-    filter_backends = [CaravaggioHaystackFilter,
-                       filters.HaystackBoostFilter,
-                       HaystackOrderingFilter]
+
+    filter_backends = [CaravaggioHaystackFilter, filters.HaystackBoostFilter, HaystackOrderingFilter]
 
     # ordering_fields = None
 
     pagination_class = CaravaggioHaystackPageNumberPagination
 
-    http_method_names = ['get']
+    http_method_names = ["get"]
 
     document_uid_field = "id"
 
@@ -206,16 +200,13 @@ class CaravaggioHaystackModelViewSet(
 
         # Checking if the base class has defined some required attributes in
         # the class
-        if not hasattr(self, 'index_models'):
-            raise AttributeError(
-                'You need to define the attribute "index_models"')
+        if not hasattr(self, "index_models"):
+            raise AttributeError('You need to define the attribute "index_models"')
 
 
 class CaravaggioHaystackFacetSearchViewSet(
-        CaravaggioThrottledViewSet,
-        mixins.FacetMixin,
-        RequestLogViewMixin,
-        HaystackViewSet):
+    CaravaggioThrottledViewSet, mixins.FacetMixin, RequestLogViewMixin, HaystackViewSet
+):
     """ This viewset extends the normal Haystack Search adding support for
     Facet queries through a new filter added to the list of `filter_backends`
 
@@ -241,17 +232,21 @@ class CaravaggioHaystackFacetSearchViewSet(
 
     object_class = CaravaggioSearchQuerySet
 
-    facet_filter_backends = [CaravaggioHaystackFilter,
-                             filters.HaystackBoostFilter,
-                             CaravaggioHaystackFacetFilter,
-                             HaystackOrderingFilter]
+    facet_filter_backends = [
+        CaravaggioHaystackFilter,
+        filters.HaystackBoostFilter,
+        CaravaggioHaystackFacetFilter,
+        HaystackOrderingFilter,
+    ]
 
-    filter_backends = [CaravaggioHaystackFilter,
-                       filters.HaystackBoostFilter,
-                       CaravaggioHaystackFacetFilter,
-                       HaystackOrderingFilter]
+    filter_backends = [
+        CaravaggioHaystackFilter,
+        filters.HaystackBoostFilter,
+        CaravaggioHaystackFacetFilter,
+        HaystackOrderingFilter,
+    ]
 
-    http_method_names = ['get']
+    http_method_names = ["get"]
 
     document_uid_field = "id"
 
@@ -260,15 +255,13 @@ class CaravaggioHaystackFacetSearchViewSet(
 
         # Checking if the base class has defined some required attributes in
         # the class
-        if not hasattr(self, 'index_models'):
-            raise AttributeError(
-                'You need to define the attribute "index_models"')
+        if not hasattr(self, "index_models"):
+            raise AttributeError('You need to define the attribute "index_models"')
 
         # Checking if the base class has defined some required attributes in
         # the class
-        if not hasattr(self, 'facet_serializer_class'):
-            raise AttributeError(
-                'You need to define the attribute "facet_serializer_class"')
+        if not hasattr(self, "facet_serializer_class"):
+            raise AttributeError('You need to define the attribute "facet_serializer_class"')
 
 
 class CaravaggioHaystackGEOSearchViewSet(CaravaggioHaystackModelViewSet):
@@ -305,10 +298,12 @@ class CaravaggioHaystackGEOSearchViewSet(CaravaggioHaystackModelViewSet):
 
     """
 
-    filter_backends = [CaravaggioHaystackFilter,
-                       filters.HaystackBoostFilter,
-                       filters.HaystackGEOSpatialFilter,
-                       HaystackOrderingFilter]
+    filter_backends = [
+        CaravaggioHaystackFilter,
+        filters.HaystackBoostFilter,
+        filters.HaystackGEOSpatialFilter,
+        HaystackOrderingFilter,
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -316,6 +311,5 @@ class CaravaggioHaystackGEOSearchViewSet(CaravaggioHaystackModelViewSet):
         # Checking if the base class has defined some required attributes in
         # the class
 
-        if not hasattr(self, 'results_serializer_class'):
-            raise AttributeError(
-                'You need to define the attribute "results_serializer_class"')
+        if not hasattr(self, "results_serializer_class"):
+            raise AttributeError('You need to define the attribute "results_serializer_class"')

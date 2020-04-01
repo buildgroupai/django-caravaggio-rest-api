@@ -7,8 +7,7 @@ from django.conf import settings
 
 from rest_framework import viewsets
 from rest_framework import filters
-from rest_framework_filters.backends import \
-    ComplexFilterBackend
+from rest_framework_filters.backends import ComplexFilterBackend
 
 from caravaggio_rest_api.drf.mixins import RequestLogViewMixin
 
@@ -36,31 +35,25 @@ class CaravaggioThrottledViewSet(object):
         the `add_member` POST action.
 
     """
+
     throttle_scope = ""
 
     def __init__(self, **kwargs):
         # Registering throttle operations
-        if hasattr(settings, "THROTTLE_ENABLED") \
-                and settings.THROTTLE_ENABLED:
-            view_throttle_operations = self.throttle_operations.copy() \
-                if hasattr(self, "throttle_operations") else {}
+        if hasattr(settings, "THROTTLE_ENABLED") and settings.THROTTLE_ENABLED:
+            view_throttle_operations = self.throttle_operations.copy() if hasattr(self, "throttle_operations") else {}
 
-            system_operations = settings.THROTTLE_OPERATIONS.copy() \
-                if hasattr(settings, "THROTTLE_OPERATIONS") else {}
+            system_operations = settings.THROTTLE_OPERATIONS.copy() if hasattr(settings, "THROTTLE_OPERATIONS") else {}
 
             system_operations.update(view_throttle_operations)
 
             for operation in system_operations.keys():
                 scope = "{0}.{1}".format(self.__class__.__name__, operation)
-                if scope not in settings.REST_FRAMEWORK[
-                        "DEFAULT_THROTTLE_RATES"]:
-                    settings.REST_FRAMEWORK[
-                        "DEFAULT_THROTTLE_RATES"][scope] = \
-                        system_operations[operation]
+                if scope not in settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]:
+                    settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"][scope] = system_operations[operation]
 
     def add_throttle(self, operation, rate):
-        if hasattr(settings, "THROTTLE_ENABLED") \
-                and settings.THROTTLE_ENABLED:
+        if hasattr(settings, "THROTTLE_ENABLED") and settings.THROTTLE_ENABLED:
             scope = "{}.{}".format(self.__class__.__name__, operation)
             settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"][scope] = rate
 
@@ -69,24 +62,19 @@ class CaravaggioThrottledViewSet(object):
         # the method in a subclass
         if not self.throttle_scope:
             if self.action:
-                self.throttle_scope = "{0}.{1}". \
-                    format(self.__class__.__name__, self.action)
+                self.throttle_scope = "{0}.{1}".format(self.__class__.__name__, self.action)
             else:
                 # If there is no action we use the DESTROY by default)
                 # It can happen if we define a detail_route in the ViewSet
                 # and the method (POST, DELETE, etc) used is not the one
                 # associated to the detail method.
-                self.throttle_scope = "{0}.{1}". \
-                    format(self.__class__.__name__, "destroy")
+                self.throttle_scope = "{0}.{1}".format(self.__class__.__name__, "destroy")
 
             LOGGER.debug("Throttling Scope: {}".format(self.throttle_scope))
         return super().get_throttles()
 
 
-class CaravaggioDjangoModelViewSet(
-        CaravaggioThrottledViewSet,
-        RequestLogViewMixin,
-        viewsets.ModelViewSet):
+class CaravaggioDjangoModelViewSet(CaravaggioThrottledViewSet, RequestLogViewMixin, viewsets.ModelViewSet):
     """ We need to use this class when we work with normal Django Model
     classes, that is, not with Cassandra or Cassandra/Solr configurations.
 
@@ -130,18 +118,41 @@ class CaravaggioDjangoModelViewSet(
      in our model. Operations: exact
 
     """
+
     MULTIPLE_RELATIONSHIP_OPERATORS_ALL = ["contains"]
     RELATIONSHIP_OPERATORS_ALL = ["in", "exact"]
-    NUMERIC_OPERATORS_ALL = ['exact', 'range', 'gt', 'gte', 'lt', 'lte']
-    DATE_OPERATORS_ALL = ['exact', 'range', 'gt', 'gte', 'lt', 'lte', 'in',
-                          'year', 'month', 'day', 'week_day',
-                          'hour', 'minute', 'second']
-    STRING_OPERATORS_ALL = ['exact', 'iexact', 'contains', 'icontains',
-                            'startswith', 'istartswith', 'endswith',
-                            'iendswith',
-                            'regex', 'iregex', 'in']
-    PK_OPERATORS_ALL = ['exact', 'in']
-    BOOL_OPERATORS_ALL = ['exact']
+    NUMERIC_OPERATORS_ALL = ["exact", "range", "gt", "gte", "lt", "lte"]
+    DATE_OPERATORS_ALL = [
+        "exact",
+        "range",
+        "gt",
+        "gte",
+        "lt",
+        "lte",
+        "in",
+        "year",
+        "month",
+        "day",
+        "week_day",
+        "hour",
+        "minute",
+        "second",
+    ]
+    STRING_OPERATORS_ALL = [
+        "exact",
+        "iexact",
+        "contains",
+        "icontains",
+        "startswith",
+        "istartswith",
+        "endswith",
+        "iendswith",
+        "regex",
+        "iregex",
+        "in",
+    ]
+    PK_OPERATORS_ALL = ["exact", "in"]
+    BOOL_OPERATORS_ALL = ["exact"]
 
     """We use this field to inform about the fields we want to make it
     filterable.
@@ -165,19 +176,17 @@ class CaravaggioDjangoModelViewSet(
 
         # Checking if the base class has defined some required attributes in
         # the class
-        if not hasattr(self, 'serializer_class'):
-            raise AttributeError(
-                'You need to define the attribute "serializer_class"')
+        if not hasattr(self, "serializer_class"):
+            raise AttributeError('You need to define the attribute "serializer_class"')
 
     def get_query_fields(self):
         custom_query_fields = set()
-        raw_fields = self.request.query_params.getlist('fields')
+        raw_fields = self.request.query_params.getlist("fields")
 
         for item in raw_fields:
-            custom_query_fields.update(item.split(','))
+            custom_query_fields.update(item.split(","))
 
         return custom_query_fields
 
     def get_serializer(self, *args, **kwargs):
-        return super().get_serializer(
-            *args, fields=self.get_query_fields(), **kwargs)
+        return super().get_serializer(*args, fields=self.get_query_fields(), **kwargs)

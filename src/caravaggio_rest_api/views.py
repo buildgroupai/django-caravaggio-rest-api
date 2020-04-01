@@ -18,7 +18,8 @@ schema_view = get_schema_view(
         description=settings.CARAVAGGIO_API_DESCRIPTION,
         terms_of_service=settings.CARAVAGGIO_API_TERMS_URL,
         contact=openapi.Contact(email=settings.CARAVAGGIO_API_CONTACT),
-        license=openapi.License(name=settings.CARAVAGGIO_API_LICENSE)),
+        license=openapi.License(name=settings.CARAVAGGIO_API_LICENSE),
+    ),
     public=True,
-    permission_classes=(AllowAny,)
+    permission_classes=(AllowAny,),
 )

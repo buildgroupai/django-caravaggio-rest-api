@@ -8,11 +8,10 @@ from haystack.backends import EmptyResults
 
 class CaravaggioSearchPaginator(object):
 
-    CURSORMARK_FIELD = 'cursorMark'
-    NEXT_CURSORMARK_FIELD = 'nextCursorMark'
+    CURSORMARK_FIELD = "cursorMark"
+    NEXT_CURSORMARK_FIELD = "nextCursorMark"
 
-    def __init__(self, query_string, models=None, limit=None, using=None,
-                 max_limit=200, **kwargs):
+    def __init__(self, query_string, models=None, limit=None, using=None, max_limit=200, **kwargs):
 
         self.using = using
         self.query_string = query_string
@@ -62,7 +61,7 @@ class CaravaggioSearchPaginator(object):
             return
 
         # No backend, so rely on the routers to figure out what's right.
-        hints = {'models': self.models}
+        hints = {"models": self.models}
 
         backend_alias = connection_router.for_read(**hints)
 
@@ -72,15 +71,12 @@ class CaravaggioSearchPaginator(object):
         return self.results["hits"] if self.results is not None else None
 
     def get_results(self):
-        is_group = 'group' in self.search_kwargs and \
-                   'true' == self.search_kwargs[str('group')]
+        is_group = "group" in self.search_kwargs and "true" == self.search_kwargs[str("group")]
 
         if is_group:
-            return self.results["groups"] \
-                if self.results is not None else None
+            return self.results["groups"] if self.results is not None else None
         else:
-            return self.results["results"] \
-                if self.results is not None else None
+            return self.results["results"] if self.results is not None else None
 
     def get_raw_results(self):
         return self.results
@@ -92,18 +88,15 @@ class CaravaggioSearchPaginator(object):
 
         # We cannot use CursorMarkets with Grouping. We will look if the
         # number of results is less than the informed limit
-        is_group = 'group' in self.search_kwargs and \
-                   'true' == self.search_kwargs[str('group')]
+        is_group = "group" in self.search_kwargs and "true" == self.search_kwargs[str("group")]
 
         if is_group:
-            valid_limit = self.limit \
-                if self.limit is not None and self.limit < self.max_limit \
-                else self.max_limit
-            return self.results is None or \
-                (0 < len(self.results['groups']) <= valid_limit)
+            valid_limit = self.limit if self.limit is not None and self.limit < self.max_limit else self.max_limit
+            return self.results is None or (0 < len(self.results["groups"]) <= valid_limit)
         else:
-            return self.results is None or self.cursorMark != \
-                self.results[CaravaggioSearchPaginator.NEXT_CURSORMARK_FIELD]
+            return (
+                self.results is None or self.cursorMark != self.results[CaravaggioSearchPaginator.NEXT_CURSORMARK_FIELD]
+            )
 
     def next(self):
 
@@ -111,44 +104,38 @@ class CaravaggioSearchPaginator(object):
 
             # We cannot use CursorMarkets with Grouping. We will look if the
             # number of results is less than the informed limit
-            is_group = 'group' in self.search_kwargs and \
-                       'true' == self.search_kwargs[str('group')]
+            is_group = "group" in self.search_kwargs and "true" == self.search_kwargs[str("group")]
 
             if is_group:
-                self.search_kwargs[str('start_offset')] = self.loaded_docs
+                self.search_kwargs[str("start_offset")] = self.loaded_docs
 
-                self.search_kwargs['end_offset'] = self.loaded_docs + (
-                    self.limit if self.limit is not None and (
-                        self.limit < self.max_limit)
-                    else self.max_limit)
+                self.search_kwargs["end_offset"] = self.loaded_docs + (
+                    self.limit if self.limit is not None and (self.limit < self.max_limit) else self.max_limit
+                )
             else:
 
                 # Save the next cursor mark as the actual cursor mark to send
                 # to the server
                 if self.results:
-                    self.cursorMark = self.results[
-                        CaravaggioSearchPaginator.NEXT_CURSORMARK_FIELD]
+                    self.cursorMark = self.results[CaravaggioSearchPaginator.NEXT_CURSORMARK_FIELD]
 
                 # Signaling the cursor mark
-                if 'start_offset' in self.search_kwargs:
-                    del self.search_kwargs[str('start_offset')]
+                if "start_offset" in self.search_kwargs:
+                    del self.search_kwargs[str("start_offset")]
 
-                self.search_kwargs['end_offset'] = self.limit \
-                    if self.limit is not None and \
-                    self.limit < self.max_limit else self.max_limit
+                self.search_kwargs["end_offset"] = (
+                    self.limit if self.limit is not None and self.limit < self.max_limit else self.max_limit
+                )
 
-                self.search_kwargs[
-                    CaravaggioSearchPaginator.CURSORMARK_FIELD] = \
-                    self.cursorMark
+                self.search_kwargs[CaravaggioSearchPaginator.CURSORMARK_FIELD] = self.cursorMark
 
             # Do the search
-            self.results = self.backend.search(
-                query_string=self.query_string, **self.search_kwargs)
+            self.results = self.backend.search(query_string=self.query_string, **self.search_kwargs)
 
             if is_group:
-                self.loaded_docs += len(self.results['groups'])
+                self.loaded_docs += len(self.results["groups"])
             else:
-                self.loaded_docs += len(self.results['results'])
+                self.loaded_docs += len(self.results["results"])
 
             return self.results
         else:

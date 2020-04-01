@@ -13,11 +13,9 @@ except ImportError:
     from cassandra.cqlengine.columns import UserDefinedType
     from cassandra.cqlengine.usertype import UserType
 
-from caravaggio_rest_api.dse.columns import \
-    KeyEncodedMap
+from caravaggio_rest_api.dse.columns import KeyEncodedMap
 
-from caravaggio_rest_api.dse.models import \
-    CustomDjangoCassandraModel
+from caravaggio_rest_api.dse.models import CustomDjangoCassandraModel
 
 from django.dispatch import receiver
 from django.db.models.signals import pre_save
@@ -29,6 +27,7 @@ class Address(UserType):
     """
     A User Defined type for model an Address, a unit value to be consolidated
     """
+
     __type_name__ = "address"
 
     street_type = columns.Text()
@@ -45,6 +44,7 @@ class Company(CustomDjangoCassandraModel):
     """
     A public traded company
     """
+
     __table_name__ = "company"
 
     # A unique identifier of the entity
@@ -112,8 +112,7 @@ class Company(CustomDjangoCassandraModel):
     # We use caravaggio KeyEncodedMap that appends the field name
     # to each of the keys in order to make them indexable by the
     # Search Indexer.
-    websites = KeyEncodedMap(
-        key_type=columns.Text, value_type=columns.Text)
+    websites = KeyEncodedMap(key_type=columns.Text, value_type=columns.Text)
 
     # A field that represents a raw JSON with the crawler configurations, each
     # key is a reference to a crawler
@@ -128,20 +127,18 @@ class Company(CustomDjangoCassandraModel):
     coordinates = columns.Text()
 
     class Meta:
-        get_pk_field = '_id'
+        get_pk_field = "_id"
 
     def validate(self):
         super(Company, self).validate()
         if self.name == "test":
-            raise ValidationError('The company name cannot be test')
+            raise ValidationError("The company name cannot be test")
 
 
 # We need to set the new value for the changed_at field
 @receiver(pre_save, sender=Company)
-def pre_save_company(
-        sender, instance=None, using=None, update_fields=None, **kwargs):
+def pre_save_company(sender, instance=None, using=None, update_fields=None, **kwargs):
     instance.updated_at = timezone.now()
 
     if instance.longitude and instance.latitude:
-        instance.coordinates = "{0},{1}".format(
-            instance.latitude, instance.longitude)
+        instance.coordinates = "{0},{1}".format(instance.latitude, instance.longitude)

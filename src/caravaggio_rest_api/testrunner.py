@@ -21,8 +21,11 @@ class TestRunner(DiscoverRunner):
         DiscoverRunner.add_arguments(parser)
 
         parser.add_argument(
-            '-ki', '--keep-indexes', action='store_true', dest='keep_indexes',
-            help='Preserves the test DB Indexes between runs.'
+            "-ki",
+            "--keep-indexes",
+            action="store_true",
+            dest="keep_indexes",
+            help="Preserves the test DB Indexes between runs.",
         )
 
     def setup_databases(self, **kwargs):
@@ -31,7 +34,7 @@ class TestRunner(DiscoverRunner):
         if not self.keep_indexes:
             for alias in connections:
                 engine = get_engine_from_db_alias(alias)
-                if engine == 'django_cassandra_engine':
+                if engine == "django_cassandra_engine":
                     sync(alias)
 
         return old_config

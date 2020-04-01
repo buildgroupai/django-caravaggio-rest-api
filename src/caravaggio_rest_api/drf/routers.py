@@ -4,24 +4,14 @@
 # This software is proprietary and confidential and may not under
 # any circumstances be used, copied, or distributed.
 from rest_framework import routers
-from rest_framework.routers import \
-    flatten, Route, DynamicRoute, ImproperlyConfigured
+from rest_framework.routers import flatten, Route, DynamicRoute, ImproperlyConfigured
 
-VALID_ACTIONS_FOR_LIST = {
-    "list": "get",
-    "create": "post"
-}
+VALID_ACTIONS_FOR_LIST = {"list": "get", "create": "post"}
 
-VALID_ACTIONS_FOR_DETAIL = {
-    "retrieve": "get",
-    "update": "put",
-    "partial_update": "patch",
-    "destroy": "delete"
-}
+VALID_ACTIONS_FOR_DETAIL = {"retrieve": "get", "update": "put", "partial_update": "patch", "destroy": "delete"}
 
 
 class CaravaggioRouter(routers.DefaultRouter):
-
     def __init__(self, actions=None, *args, **kwargs):
         """
         Configure the available routes based on the informed actions.
@@ -36,13 +26,14 @@ class CaravaggioRouter(routers.DefaultRouter):
         """
         # if actions is None, we register all the available operations
         if not actions:
-            actions = list(VALID_ACTIONS_FOR_LIST.keys()) + \
-                list(VALID_ACTIONS_FOR_DETAIL)
+            actions = list(VALID_ACTIONS_FOR_LIST.keys()) + list(VALID_ACTIONS_FOR_DETAIL)
 
         if not isinstance(actions, (list, set)):
-            raise TypeError("The `actions` argument must be a list or set."
-                            "For example "
-                            "`CaravaggiokRouter(['list', 'retrieve'])`")
+            raise TypeError(
+                "The `actions` argument must be a list or set."
+                "For example "
+                "`CaravaggiokRouter(['list', 'retrieve'])`"
+            )
 
         list_actions = {}
         detail_actions = {}
@@ -59,36 +50,33 @@ class CaravaggioRouter(routers.DefaultRouter):
         self.custom_routes = [
             # List route.
             routers.Route(
-                url=r'^{prefix}{trailing_slash}$',
+                url=r"^{prefix}{trailing_slash}$",
                 mapping=list_actions,
-                name='{basename}-list',
+                name="{basename}-list",
                 detail=False,
-                initkwargs={'suffix': 'List'}
+                initkwargs={"suffix": "List"},
             ),
             # Dynamically generated list routes. Generated using
             # @action(detail=False) decorator on methods of the viewset.
             routers.DynamicRoute(
-                url=r'^{prefix}/{url_path}{trailing_slash}$',
-                name='{basename}-{url_name}',
-                detail=False,
-                initkwargs={}
+                url=r"^{prefix}/{url_path}{trailing_slash}$", name="{basename}-{url_name}", detail=False, initkwargs={}
             ),
             # Detail route.
             routers.Route(
-                url=r'^{prefix}/{lookup}{trailing_slash}$',
+                url=r"^{prefix}/{lookup}{trailing_slash}$",
                 mapping=detail_actions,
-                name='{basename}-detail',
+                name="{basename}-detail",
                 detail=True,
-                initkwargs={'suffix': 'Instance'}
+                initkwargs={"suffix": "Instance"},
             ),
             # Dynamically generated detail routes. Generated using
             # @action(detail=True) decorator on methods of the viewset.
             routers.DynamicRoute(
-                url=r'^{prefix}/{lookup}/{url_path}{trailing_slash}$',
-                name='{basename}-{url_name}',
+                url=r"^{prefix}/{lookup}/{url_path}{trailing_slash}$",
+                name="{basename}-{url_name}",
                 detail=True,
-                initkwargs={}
-            )
+                initkwargs={},
+            ),
         ]
 
         super().__init__(*args, **kwargs)
@@ -102,35 +90,28 @@ class CaravaggioRouter(routers.DefaultRouter):
         # converting to list as iterables are good for one pass, known
         # host needs to be checked again and again for
         # different functions.
-        known_actions = list(flatten([route.mapping.values()
-                                      for route in self.custom_routes
-                                      if isinstance(route, Route)]))
+        known_actions = list(
+            flatten([route.mapping.values() for route in self.custom_routes if isinstance(route, Route)])
+        )
 
         extra_actions = viewset.get_extra_actions()
 
         # checking action names against the known actions list
-        not_allowed = [
-            action.__name__ for action in extra_actions
-            if action.__name__ in known_actions
-        ]
+        not_allowed = [action.__name__ for action in extra_actions if action.__name__ in known_actions]
         if not_allowed:
-            msg = ('Cannot use the @action decorator on the following '
-                   'methods, as they are existing routes: %s')
-            raise ImproperlyConfigured(msg % ', '.join(not_allowed))
+            msg = "Cannot use the @action decorator on the following " "methods, as they are existing routes: %s"
+            raise ImproperlyConfigured(msg % ", ".join(not_allowed))
 
         # partition detail and list actions
         detail_actions = [action for action in extra_actions if action.detail]
-        list_actions = [action for action in extra_actions
-                        if not action.detail]
+        list_actions = [action for action in extra_actions if not action.detail]
 
         routes = []
         for route in self.custom_routes:
             if isinstance(route, DynamicRoute) and route.detail:
-                routes += [self._get_dynamic_route(route, action)
-                           for action in detail_actions]
+                routes += [self._get_dynamic_route(route, action) for action in detail_actions]
             elif isinstance(route, DynamicRoute) and not route.detail:
-                routes += [self._get_dynamic_route(route, action)
-                           for action in list_actions]
+                routes += [self._get_dynamic_route(route, action) for action in list_actions]
             else:
                 routes.append(route)
 

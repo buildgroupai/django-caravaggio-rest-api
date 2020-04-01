@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*
 from datetime import datetime, timedelta
 
-from caravaggio_rest_api.drf_haystack.serializers import \
-    BaseCachedSerializerMixin, CustomHaystackSerializer, \
-    CustomHaystackFacetSerializer
+from caravaggio_rest_api.drf_haystack.serializers import (
+    BaseCachedSerializerMixin,
+    CustomHaystackSerializer,
+    CustomHaystackFacetSerializer,
+)
 
 from rest_framework import fields, serializers
 from rest_framework.status import HTTP_400_BAD_REQUEST
@@ -20,7 +22,7 @@ from caravaggio_rest_api.example.company.search_indexes import CompanyIndex
 class AddressSerializerV1(dse_serializers.UserTypeSerializer):
     street_type = serializers.CharField(required=False, max_length=10)
     street_name = serializers.CharField(required=False, max_length=150)
-    street_number = serializers.IntegerField(required=False, )
+    street_number = serializers.IntegerField(required=False,)
     city = serializers.CharField(required=False, max_length=150)
     region = serializers.CharField(required=False, max_length=150)
     state = serializers.CharField(required=False, max_length=150)
@@ -36,25 +38,21 @@ class AddressSerializerV1(dse_serializers.UserTypeSerializer):
         __type__ = Address
 
 
-class CompanySerializerV1(dse_serializers.CassandraModelSerializer,
-                          BaseCachedSerializerMixin):
+class CompanySerializerV1(dse_serializers.CassandraModelSerializer, BaseCachedSerializerMixin):
     """
     Represents a Business Object API View with support for JSON, list, and map
     fields.
     """
 
-    user = serializers.HiddenField(
-        default=dse_fields.CurrentUserNameDefault())
+    user = serializers.HiddenField(default=dse_fields.CurrentUserNameDefault())
 
-    created_at = serializers.DateTimeField(
-        default=serializers.CreateOnlyDefault(datetime.utcnow))
+    created_at = serializers.DateTimeField(default=serializers.CreateOnlyDefault(datetime.utcnow))
 
     address = AddressSerializerV1()
 
     founders = fields.ListField(required=False, child=fields.UUIDField())
     specialties = fields.ListField(required=False, child=fields.CharField())
-    latest_twitter_followers = fields.ListField(
-        required=False, child=fields.IntegerField())
+    latest_twitter_followers = fields.ListField(required=False, child=fields.IntegerField())
 
     websites = fields.DictField(required=False, child=fields.CharField())
 
@@ -62,33 +60,46 @@ class CompanySerializerV1(dse_serializers.CassandraModelSerializer,
     extra_data = dse_fields.CassandraJSONFieldAsText(required=False)
 
     class Meta:
-        error_status_codes = {
-            HTTP_400_BAD_REQUEST: "Bad Request"
-        }
+        error_status_codes = {HTTP_400_BAD_REQUEST: "Bad Request"}
 
         model = Company
-        fields = ("_id", "user", "created_at", "updated_at",
-                  "name", "short_description", "foundation_date",
-                  "country_code", "stock_symbol", "domain", "last_round",
-                  "round_notes",
-                  "address", "latitude", "longitude",
-                  "contact_email", "founders", "specialties",
-                  "latest_twitter_followers", "websites", "crawler_config",
-                  "extra_data")
+        fields = (
+            "_id",
+            "user",
+            "created_at",
+            "updated_at",
+            "name",
+            "short_description",
+            "foundation_date",
+            "country_code",
+            "stock_symbol",
+            "domain",
+            "last_round",
+            "round_notes",
+            "address",
+            "latitude",
+            "longitude",
+            "contact_email",
+            "founders",
+            "specialties",
+            "latest_twitter_followers",
+            "websites",
+            "crawler_config",
+            "extra_data",
+        )
         read_only_fields = ("_id", "user", "created_at", "updated_at")
 
 
-class CompanySearchSerializerV1(CustomHaystackSerializer,
-                                BaseCachedSerializerMixin):
+class CompanySearchSerializerV1(CustomHaystackSerializer, BaseCachedSerializerMixin):
     """
     A Fast Searcher (Solr) version of the original Business Object API View
     """
+
     address = AddressSerializerV1()
 
     founders = fields.ListField(required=False, child=fields.UUIDField())
     specialties = fields.ListField(required=False, child=fields.CharField())
-    latest_twitter_followers = fields.ListField(
-        required=False, child=fields.IntegerField())
+    latest_twitter_followers = fields.ListField(required=False, child=fields.IntegerField())
 
     websites = fields.DictField(required=False, child=fields.CharField())
 
@@ -107,33 +118,50 @@ class CompanySearchSerializerV1(CustomHaystackSerializer,
         # NOTE: Make sure you don't confuse these with model attributes. These
         # fields belong to the search index!
         fields = [
-            "_id", "created_at", "updated_at",
-            "name", "short_description", "foundation_date",
-            "last_round", "round_notes",
-            "country_code", "stock_symbol", "domain",
-            "address_street_type", "address_street_name",
-            "address_street_number", "address_state", "address_region",
-            "address_city", "address_country_code", "address_zipcode",
-            "latitude", "longitude",
-            "contact_email", "founders", "specialties",
-            "latest_twitter_followers", "websites", "crawler_config",
+            "_id",
+            "created_at",
+            "updated_at",
+            "name",
+            "short_description",
+            "foundation_date",
+            "last_round",
+            "round_notes",
+            "country_code",
+            "stock_symbol",
+            "domain",
+            "address_street_type",
+            "address_street_name",
+            "address_street_number",
+            "address_state",
+            "address_region",
+            "address_city",
+            "address_country_code",
+            "address_zipcode",
+            "latitude",
+            "longitude",
+            "contact_email",
+            "founders",
+            "specialties",
+            "latest_twitter_followers",
+            "websites",
+            "crawler_config",
             "extra_data",
-            "text", "score"
+            "text",
+            "score",
         ]
 
 
-class CompanyGEOSearchSerializerV1(CustomHaystackSerializer,
-                                   BaseCachedSerializerMixin):
+class CompanyGEOSearchSerializerV1(CustomHaystackSerializer, BaseCachedSerializerMixin):
     """
     A Fast Searcher (Solr) version of the original Business Object API View
     to do GEO Spatial searches
     """
+
     address = AddressSerializerV1()
 
     founders = fields.ListField(required=False, child=fields.UUIDField())
     specialties = fields.ListField(required=False, child=fields.CharField())
-    latest_twitter_followers = fields.ListField(
-        required=False, child=fields.IntegerField())
+    latest_twitter_followers = fields.ListField(required=False, child=fields.IntegerField())
 
     websites = fields.DictField(required=False, child=fields.CharField())
 
@@ -151,18 +179,37 @@ class CompanyGEOSearchSerializerV1(CustomHaystackSerializer,
         index_classes = [CompanyIndex]
 
         fields = [
-            "_id", "created_at", "updated_at",
-            "name", "short_description", "foundation_date",
-            "last_round", "round_notes",
-            "country_code", "stock_symbol", "domain",
-            "address_street_type", "address_street_name",
-            "address_street_number", "address_state", "address_region",
-            "address_city", "address_country_code", "address_zipcode",
-            "latitude", "longitude",
-            "contact_email", "founders", "specialties",
-            "latest_twitter_followers", "websites", "crawler_config",
+            "_id",
+            "created_at",
+            "updated_at",
+            "name",
+            "short_description",
+            "foundation_date",
+            "last_round",
+            "round_notes",
+            "country_code",
+            "stock_symbol",
+            "domain",
+            "address_street_type",
+            "address_street_name",
+            "address_street_number",
+            "address_state",
+            "address_region",
+            "address_city",
+            "address_country_code",
+            "address_zipcode",
+            "latitude",
+            "longitude",
+            "contact_email",
+            "founders",
+            "specialties",
+            "latest_twitter_followers",
+            "websites",
+            "crawler_config",
             "extra_data",
-            "text", "score", "distance"
+            "text",
+            "score",
+            "distance",
         ]
 
 
@@ -176,8 +223,15 @@ class CompanyFacetSerializerV1(CustomHaystackFacetSerializer):
 
     class Meta:
         index_classes = [CompanyIndex]
-        fields = ["foundation_date", "country_code", "stock_symbol",
-                  "founders", "specialties", "last_round", "headcount"]
+        fields = [
+            "foundation_date",
+            "country_code",
+            "stock_symbol",
+            "founders",
+            "specialties",
+            "last_round",
+            "headcount",
+        ]
 
         # IMPORTANT
         # Faceting on Tuple fields is not supported

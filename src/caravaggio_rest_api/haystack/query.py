@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*
 # Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
-from haystack.query import SearchQuerySet, \
-    ValuesSearchQuerySet, ValuesListSearchQuerySet
+from haystack.query import SearchQuerySet, ValuesSearchQuerySet, ValuesListSearchQuerySet
 
 
 class CaravaggioSearchQuerySet(SearchQuerySet):
-
     def terms_json_facet(self, facet_name, field, facets, **kwargs):
         """Adds a terms json facet to a query for the provided field."""
         clone = self._clone()
         if not getattr(clone.query, "add_json_query_facet"):
             raise TypeError(
-                "'{}.{}' is not valid SearchQuerySet class. "
-                "It has not support for json facets.",
+                "'{}.{}' is not valid SearchQuerySet class. " "It has not support for json facets.",
                 clone.query.__module__,
-                clone.query.__name__)
+                clone.query.__name__,
+            )
         clone.query.add_json_terms_facet(facet_name, field, facets, **kwargs)
         return clone
 
@@ -24,10 +22,10 @@ class CaravaggioSearchQuerySet(SearchQuerySet):
         clone = self._clone()
         if not getattr(clone.query, "add_json_query_facet"):
             raise TypeError(
-                "'{}.{}' is not valid SearchQuerySet class. "
-                "It has not support for json facets.",
+                "'{}.{}' is not valid SearchQuerySet class. " "It has not support for json facets.",
                 clone.query.__module__,
-                clone.query.__name__)
+                clone.query.__name__,
+            )
         clone.query.add_json_query_facet(facet_name, q, facets, **kwargs)
         return clone
 
@@ -39,10 +37,10 @@ class CaravaggioSearchQuerySet(SearchQuerySet):
         clone = self._clone()
         if not getattr(clone.query, "add_range_facet"):
             raise TypeError(
-                "'{}.{}' is not valid SearchQuerySet class. "
-                "It has not support for range facets.",
+                "'{}.{}' is not valid SearchQuerySet class. " "It has not support for range facets.",
                 clone.query.__module__,
-                clone.query.__name__)
+                clone.query.__name__,
+            )
         clone.query.add_range_facet(field, **options)
         return clone
 
@@ -55,10 +53,10 @@ class CaravaggioSearchQuerySet(SearchQuerySet):
         clone = self._clone()
         if not getattr(clone.query, "add_facets_option"):
             raise TypeError(
-                "'{}.{}' is not valid SearchQuerySet class. "
-                "It has not support for facets options in the request.",
+                "'{}.{}' is not valid SearchQuerySet class. " "It has not support for facets options in the request.",
                 clone.query.__module__,
-                clone.query.__name__)
+                clone.query.__name__,
+            )
         clone.query.add_facets_option(facet_param, value)
         return clone
 
@@ -83,9 +81,7 @@ class CaravaggioSearchQuerySet(SearchQuerySet):
         flat = kwargs.pop("flat", False)
 
         if flat and len(fields) > 1:
-            raise TypeError(
-                "'flat' is not valid when values_list is"
-                " called with more than one field.")
+            raise TypeError("'flat' is not valid when values_list is" " called with more than one field.")
 
         qs = self._clone(klass=CaravaggioValuesListSearchQuerySet)
         qs._fields.extend(fields)
@@ -94,14 +90,12 @@ class CaravaggioSearchQuerySet(SearchQuerySet):
 
 
 class CaravaggioValuesListSearchQuerySet(ValuesListSearchQuerySet):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._internal_fields = ['score']
+        self._internal_fields = ["score"]
 
 
 class CaravaggioValuesSearchQuerySet(ValuesSearchQuerySet):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._internal_fields = ['score']
+        self._internal_fields = ["score"]

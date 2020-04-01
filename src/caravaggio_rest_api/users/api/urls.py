@@ -28,20 +28,15 @@ from .views import UserViewSet, ClientViewSet, OrganizationViewSet
 api_USERS = routers.DefaultRouter()
 
 # Manage external systems
-api_USERS.register(r'client',
-                   ClientViewSet, base_name="client")
+api_USERS.register(r"client", ClientViewSet, base_name="client")
 
 # Manage organizations
-api_USERS.register(r'organization',
-                   OrganizationViewSet, base_name="organization")
+api_USERS.register(r"organization", OrganizationViewSet, base_name="organization")
 
 # Manage users organizations
-api_USERS.register(r'user',
-                   UserViewSet, base_name="user")
+api_USERS.register(r"user", UserViewSet, base_name="user")
 
 urlpatterns = [
-
     # Users API version
-    url(r'^', include(api_USERS.urls), name="users-api"),
-
+    url(r"^", include(api_USERS.urls), name="users-api"),
 ]

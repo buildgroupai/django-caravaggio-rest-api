@@ -14,7 +14,6 @@ class RequestLogViewMixin(object):
 
     @classonlymethod
     def as_view(cls, actions=None, **initkwargs):
-        view = super(RequestLogViewMixin, cls).as_view(
-            actions=actions, **initkwargs)
+        view = super(RequestLogViewMixin, cls).as_view(actions=actions, **initkwargs)
         view = decorator_from_middleware(RequestLogMiddleware)(view)
         return view

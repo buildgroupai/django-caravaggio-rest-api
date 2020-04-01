@@ -69,7 +69,7 @@ def get_keyspace(alias=None):
     for alias in connections:
         engine = get_engine_from_db_alias(alias)
         if engine == "django_cassandra_engine":
-            return connections[alias].settings_dict.get('NAME', '')
+            return connections[alias].settings_dict.get("NAME", "")
 
     raise AttributeError("Database not found!")
 
@@ -77,12 +77,10 @@ def get_keyspace(alias=None):
 def delete_all_records(model_clazz, database=None):
     if issubclass(model_clazz, DjangoCassandraModel):
         conn = get_database(model_clazz, database)
-        conn.connection.execute(
-            "TRUNCATE {};".format(model_clazz.objects.column_family_name))
+        conn.connection.execute("TRUNCATE {};".format(model_clazz.objects.column_family_name))
     else:
         model_clazz.objects.all().delete()
 
 
 def get_primary_keys_values(instance, model):
-    return {pk: getattr(instance, pk)
-            for pk in model._primary_keys.keys()}
+    return {pk: getattr(instance, pk) for pk in model._primary_keys.keys()}

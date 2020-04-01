@@ -6,7 +6,7 @@ from django.apps import AppConfig
 
 
 class CaravaggioRESTAPIConfig(AppConfig):
-    name = 'caravaggio_rest_api'
+    name = "caravaggio_rest_api"
     verbose_name = "Django Caravaggio REST API"
 
     def ready(self):

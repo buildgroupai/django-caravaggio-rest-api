@@ -9,14 +9,12 @@ from .models import CaravaggioUser
 
 
 class CaravaggioUserCreationForm(UserCreationForm):
-
     class Meta(UserCreationForm):
         model = CaravaggioUser
-        fields = ('client', 'email')
+        fields = ("client", "email")
 
 
 class CaravaggioUserChangeForm(UserChangeForm):
-
     class Meta:
         model = CaravaggioUser
         fields = UserChangeForm.Meta.fields

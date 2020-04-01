@@ -16,8 +16,7 @@ class ClientAdminPermission(permissions.BasePermission):
         if isinstance(request.user, AnonymousUser):
             return False
 
-        permission = bool((request.user and request.user.is_staff) or (
-            request.user and request.user.is_client_staff))
+        permission = bool((request.user and request.user.is_staff) or (request.user and request.user.is_client_staff))
 
         return permission
 
@@ -32,16 +31,17 @@ class OrganizationAdminPermission(permissions.BasePermission):
         if isinstance(request.user, AnonymousUser):
             return False
 
-        permission = bool((request.user and request.user.is_staff) or (
-            request.user and request.user.is_client_staff) or (
-            request.user.owner_of.count()) or (
-            request.user.administrator_of.count()))
+        permission = bool(
+            (request.user and request.user.is_staff)
+            or (request.user and request.user.is_client_staff)
+            or (request.user.owner_of.count())
+            or (request.user.administrator_of.count())
+        )
 
         return permission
 
 
 class OrganizationUserAdminPermission(OrganizationAdminPermission):
-
     def has_object_permission(self, request, view, user):
 
         # Super user
@@ -58,12 +58,14 @@ class OrganizationUserAdminPermission(OrganizationAdminPermission):
 
         # Let's see if the authenticated user is administrator of any of the
         # organizations the user object is a member of.
-        admin_of = request.user.owner_of.all().union(
-            request.user.administrator_of.all()).distinct()
+        admin_of = request.user.owner_of.all().union(request.user.administrator_of.all()).distinct()
 
-        user_organizations = user.member_of.all().union(
-            user.restricted_member_of.all()).union(
-            user.administrator_of.all()).union(
-            user.owner_of.all()).distinct()
+        user_organizations = (
+            user.member_of.all()
+            .union(user.restricted_member_of.all())
+            .union(user.administrator_of.all())
+            .union(user.owner_of.all())
+            .distinct()
+        )
 
         return bool(len(set(admin_of).intersection(user_organizations)))

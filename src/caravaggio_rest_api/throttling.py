@@ -18,7 +18,7 @@ class CacheUserRateThrottle(UserRateThrottle):
     cache = caches["deafult"]
 
     # Using a key similar to the one used in the old version (tastypie)
-    cache_format = '%(scope)s_%(identifier)s_accesses'
+    cache_format = "%(scope)s_%(identifier)s_accesses"
 
     def get_cache_key(self, request, view):
         if request.user.is_authenticated:
@@ -30,15 +30,12 @@ class CacheUserRateThrottle(UserRateThrottle):
 
         for char in identifier:
             # Sky accepts alphanumeric plus ``@/./+/-/_`` characters
-            if char.isalnum() or char in ['@', '.', '+', '-', '_']:
+            if char.isalnum() or char in ["@", ".", "+", "-", "_"]:
                 bits.append(char)
 
-        safe_string = ''.join(bits)
+        safe_string = "".join(bits)
 
-        return self.cache_format % {
-            'scope': self.scope,
-            'identifier': safe_string
-        }
+        return self.cache_format % {"scope": self.scope, "identifier": safe_string}
 
     def throttle_success(self):
         """

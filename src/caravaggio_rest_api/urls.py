@@ -21,61 +21,44 @@ from django.urls import path
 from rest_framework_cache.registry import cache_registry
 from django.contrib import admin
 
-from caravaggio_rest_api.users.api.views import \
-    CustomAuthToken, AdminAuthToken
+from caravaggio_rest_api.users.api.views import CustomAuthToken, AdminAuthToken
 
 from caravaggio_rest_api.views import schema_view
 
 from caravaggio_rest_api.users.api.urls import urlpatterns as users_urls
 
-from caravaggio_rest_api.example.company.urls import \
-    urlpatterns as company_urls
+from caravaggio_rest_api.example.company.urls import urlpatterns as company_urls
 
-urls.handler500 = 'rest_framework.exceptions.server_error'
-urls.handler400 = 'rest_framework.exceptions.bad_request'
+urls.handler500 = "rest_framework.exceptions.server_error"
+urls.handler400 = "rest_framework.exceptions.bad_request"
 
 urlpatterns = [
     # ## DO NOT TOUCH
-
     # API Swagger documentation
-    url(r'^swagger(?P<format>\.json|\.yaml)$',
-        schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    url(r'^swagger/$',
-        schema_view.with_ui('swagger', cache_timeout=0),
-        name='schema-swagger-ui'),
-    url(r'^redoc/$',
-        schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-
+    url(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json"),
+    url(r"^swagger/$", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
+    url(r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     # Django REST Framework auth urls
-    url(r'^api-auth/',
-        include('rest_framework.urls', namespace='rest_framework')),
-
+    url(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     # Mechanism for clients to obtain a token given the username and password.
-    url(r'^api-token-auth/', CustomAuthToken.as_view()),
-
+    url(r"^api-token-auth/", CustomAuthToken.as_view()),
     # Mechanism for administrator to obtain a token given
     # the client id and email.
-    url(r'^admin-token-auth/', AdminAuthToken.as_view()),
-
+    url(r"^admin-token-auth/", AdminAuthToken.as_view()),
     # Access to the admin site
-    url(r'^admin/', admin.site.urls),
-
+    url(r"^admin/", admin.site.urls),
     # Users API version
-    url(r'^users/', include(users_urls)),
-
+    url(r"^users/", include(users_urls)),
     # ## END DO NOT TOUCH
-
     # API
-    url(r'^companies/', include(company_urls)),
-
+    url(r"^companies/", include(company_urls)),
     # Default API version
     # url(r'^$', RedirectView.as_view(url='zion/')),
 ]
 
 if settings.DEBUG:
     import debug_toolbar
-    urlpatterns = [
-        path('__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+
+    urlpatterns = [path("__debug__/", include(debug_toolbar.urls)),] + urlpatterns
 
 cache_registry.autodiscover()

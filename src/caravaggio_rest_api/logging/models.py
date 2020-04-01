@@ -8,11 +8,9 @@ from datetime import datetime
 
 from django.utils import timezone
 
-from caravaggio_rest_api.dse.models import \
-    CustomDjangoCassandraModel
+from caravaggio_rest_api.dse.models import CustomDjangoCassandraModel
 
-from caravaggio_rest_api.dse.columns import \
-    InetAddress, KeyEncodedMap
+from caravaggio_rest_api.dse.columns import InetAddress, KeyEncodedMap
 
 from django.dispatch import receiver
 from django.db.models.signals import pre_save
@@ -82,8 +80,7 @@ class ApiAccess(CustomDjangoCassandraModel):
 
     """
 
-    request_query_params = KeyEncodedMap(
-        key_type=columns.Text, value_type=columns.Text)
+    request_query_params = KeyEncodedMap(key_type=columns.Text, value_type=columns.Text)
     """ We save all the query params informed in the request as a map.
 
     We use caravaggio KeyEncodedMap that appends the field name to each of
@@ -110,7 +107,7 @@ class ApiAccess(CustomDjangoCassandraModel):
     coordinates = columns.Text()
 
     class Meta:
-        get_pk_field = 'year_month'
+        get_pk_field = "year_month"
 
     def validate(self):
         super(ApiAccess, self).validate()
@@ -118,11 +115,8 @@ class ApiAccess(CustomDjangoCassandraModel):
 
 # We need to set the new value for the changed_at field
 @receiver(pre_save, sender=ApiAccess)
-def pre_save_company(
-        sender, instance=None, using=None, update_fields=None, **kwargs):
-    instance.year_month = \
-        datetime.utcfromtimestamp(instance.time_ms).strftime("%Y%m")
+def pre_save_company(sender, instance=None, using=None, update_fields=None, **kwargs):
+    instance.year_month = datetime.utcfromtimestamp(instance.time_ms).strftime("%Y%m")
 
     if instance.longitude and instance.latitude:
-        instance.coordinates = "{0},{1}".format(
-            instance.latitude, instance.longitude)
+        instance.coordinates = "{0},{1}".format(instance.latitude, instance.longitude)
