@@ -95,8 +95,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"django-caravaggio-rest-api"
-copyright = u"2019, BuildGroup Data Services, Inc"
+project = "django-caravaggio-rest-api"
+copyright = "2019, BuildGroup Data Services, Inc"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -244,7 +244,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ("index", "user_guide.tex", u"Caravaggio REST API Documentation", u"BGDS Team", "manual"),
+    ("index", "user_guide.tex", "Caravaggio REST API Documentation", "BGDS Team", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

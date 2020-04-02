@@ -275,7 +275,7 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
         result_class=None,
         stats=None,
         collate=None,
-        **extra_kwargs
+        **extra_kwargs,
     ):
 
         self.date_facets = date_facets.copy() if date_facets else {}
@@ -302,7 +302,7 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
             result_class=result_class,
             stats=stats,
             collate=collate,
-            **extra_kwargs
+            **extra_kwargs,
         )
 
         json_facets = extra_kwargs.get("json_facets", None)
@@ -438,21 +438,21 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
         if field == "content":
             index_fieldname = ""
         else:
-            index_fieldname = u"%s" % connections[self._using].get_unified_index().get_index_fieldname(field)
+            index_fieldname = "%s" % connections[self._using].get_unified_index().get_index_fieldname(field)
 
         filter_types = {
-            "content": u"%s",
-            "contains": u"*%s*",
-            "endswith": u"*%s",
-            "startswith": u"%s*",
-            "exact": u"%s",
-            "gt": u"{%s TO *}",
-            "gte": u"[%s TO *]",
-            "lt": u"{* TO %s}",
-            "lte": u"[* TO %s]",
-            "fuzzy": u"%s~",
-            "regex": u"/%s/",
-            "iregex": u"/%s/",
+            "content": "%s",
+            "contains": "*%s*",
+            "endswith": "*%s",
+            "startswith": "%s*",
+            "exact": "%s",
+            "gt": "{%s TO *}",
+            "gte": "[%s TO *]",
+            "lt": "{* TO %s}",
+            "lte": "[* TO %s]",
+            "fuzzy": "%s~",
+            "regex": "/%s/",
+            "iregex": "/%s/",
         }
 
         if value.post_process is False:
@@ -473,7 +473,7 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
                     query_frag = '"{}"'.format(terms[0])
                 else:
                     terms = ['"{}"'.format(term) for term in terms]
-                    query_frag = u"(%s)" % " {} ".format(operator).join(terms)
+                    query_frag = "(%s)" % " {} ".format(operator).join(terms)
             elif filter_type in ["content", "contains", "startswith", "endswith", "fuzzy", "regex", "iregex"]:
                 if value.input_type_name == "exact":
                     query_frag = prepared_value
@@ -495,21 +495,21 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
                     if len(terms) == 1:
                         query_frag = terms[0]
                     else:
-                        query_frag = u"(%s)" % " AND ".join(terms)
+                        query_frag = "(%s)" % " AND ".join(terms)
             elif filter_type == "in":
                 in_options = []
 
                 if not prepared_value:
-                    query_frag = u"(!*:*)"
+                    query_frag = "(!*:*)"
                 else:
                     for possible_value in prepared_value:
-                        in_options.append(u'"%s"' % self.backend.conn._from_python(possible_value))
+                        in_options.append('"%s"' % self.backend.conn._from_python(possible_value))
 
-                    query_frag = u"(%s)" % " OR ".join(in_options)
+                    query_frag = "(%s)" % " OR ".join(in_options)
             elif filter_type == "range":
                 start = self.backend.conn._from_python(prepared_value[0])
                 end = self.backend.conn._from_python(prepared_value[1])
-                query_frag = u'["%s" TO "%s"]' % (start, end)
+                query_frag = '["%s" TO "%s"]' % (start, end)
             elif filter_type == "exact":
                 if value.input_type_name == "exact":
                     query_frag = prepared_value
@@ -539,9 +539,9 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
         model_attr = searchable_fields[index_fieldname].model_attr
 
         if model_attr and "." in model_attr:
-            return u"{{!tuple v='{field}:{value}'}}".format(field=model_attr, value=query_frag)
+            return "{{!tuple v='{field}:{value}'}}".format(field=model_attr, value=query_frag)
         else:
-            return u"%s:%s" % (index_fieldname, query_frag)
+            return "%s:%s" % (index_fieldname, query_frag)
 
     def build_params(self, spelling_query=None, **kwargs):
         """Generates a list of params to use when searching."""
