@@ -22,7 +22,7 @@ pysolr
 #solrq
 
 #-- geospatial queries
-GDAL
+GDAL==2.4.4
 geopy
 
 fuzzywuzzy
