@@ -204,6 +204,31 @@ class CaravaggioHaystackModelViewSet(CaravaggioThrottledViewSet, HaystackViewSet
             raise AttributeError('You need to define the attribute "index_models"')
 
 
+class CaravaggioHaystackSearchViewSet(CaravaggioThrottledViewSet, RequestLogViewMixin, HaystackViewSet):
+
+    pagination_class = CaravaggioHaystackPageNumberPagination
+
+    object_class = CaravaggioSearchQuerySet
+
+    filter_backends = [
+        CaravaggioHaystackFilter,
+        filters.HaystackBoostFilter,
+        HaystackOrderingFilter,
+    ]
+
+    http_method_names = ["get"]
+
+    document_uid_field = "id"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Checking if the base class has defined some required attributes in
+        # the class
+        if not hasattr(self, "index_models"):
+            raise AttributeError('You need to define the attribute "index_models"')
+
+
 class CaravaggioHaystackFacetSearchViewSet(
     CaravaggioThrottledViewSet, mixins.FacetMixin, RequestLogViewMixin, HaystackViewSet
 ):
