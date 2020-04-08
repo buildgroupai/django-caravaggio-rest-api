@@ -24,7 +24,7 @@ pysolr>=3.7.0
 solrq>=1.1.1
 
 # Geospatial Data Abstraction Library
-gdal==2.3.3
+GDAL>=2.4.4
 geopy>=1.17.0
 
 # Fuzzy
