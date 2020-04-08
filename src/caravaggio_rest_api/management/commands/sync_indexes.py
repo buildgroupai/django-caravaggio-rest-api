@@ -501,11 +501,6 @@ def sync(alias, only_model=None):
                     create_index(model, indexes_by_model.get(model))
 
 
-import pydevd_pycharm
-
-pydevd_pycharm.settrace("host.docker.internal", port=8181, stdoutToServer=True, stderrToServer=True)
-
-
 class Command(BaseCommand):
     help = "Sync Cassandra Index(es)"
 
