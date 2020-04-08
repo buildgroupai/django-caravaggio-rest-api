@@ -79,10 +79,21 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
     def clear(self, models=None, commit=True):
         raise NotImplemented("Clear is not allowed in DSE")
 
-    def _process_results(self, raw_results, model=None, highlight=False, result_class=None, distance_point=None):
+    def _process_results(
+        self, raw_results, model=None, highlight=False, result_class=None, distance_point=None, percent_score=False
+    ):
 
         results = super()._process_results(raw_results, highlight, result_class, distance_point)
 
+        if (
+            percent_score
+            and hasattr(raw_results, "raw_response")
+            and "maxScore" in raw_results.raw_response["response"]
+        ):
+            # means that the score will be the percentage between the score and the maxScore
+            max_score = raw_results.raw_response["response"]["maxScore"]
+            for result in results["results"]:
+                result.score = result.score / max_score
         if hasattr(raw_results, "qtime"):
             results["qtime"] = raw_results.qtime
 
@@ -387,6 +398,7 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
             highlight=kwargs.get("highlight"),
             result_class=kwargs.get("result_class", SearchResult),
             distance_point=kwargs.get("distance_point"),
+            percent_score=kwargs.get("percent_score"),
         )
 
     def prepare_conn(self, model):

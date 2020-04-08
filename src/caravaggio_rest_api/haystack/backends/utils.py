@@ -11,7 +11,7 @@ class CaravaggioSearchPaginator(object):
     CURSORMARK_FIELD = "cursorMark"
     NEXT_CURSORMARK_FIELD = "nextCursorMark"
 
-    def __init__(self, query_string, models=None, limit=None, using=None, max_limit=200, **kwargs):
+    def __init__(self, query_string, models=None, limit=None, using=None, max_limit=200, percent_score=False, **kwargs):
 
         self.using = using
         self.query_string = query_string
@@ -24,6 +24,7 @@ class CaravaggioSearchPaginator(object):
         self.results = None
         self.loaded_docs = 0
         self.select_fields = None
+        self.percent_score = percent_score
 
         self._determine_backend()
 
@@ -130,7 +131,9 @@ class CaravaggioSearchPaginator(object):
                 self.search_kwargs[CaravaggioSearchPaginator.CURSORMARK_FIELD] = self.cursorMark
 
             # Do the search
-            self.results = self.backend.search(query_string=self.query_string, **self.search_kwargs)
+            self.results = self.backend.search(
+                query_string=self.query_string, percent_score=self.percent_score, **self.search_kwargs
+            )
 
             if is_group:
                 self.loaded_docs += len(self.results["groups"])
