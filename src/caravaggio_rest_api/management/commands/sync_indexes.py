@@ -234,6 +234,14 @@ def _find_udt_attribute(model, field_name):
     return getattr(model, field_segments[0], None)
 
 
+def _drop_unnecessary_indexes(ks_name, table_name, fieldsname):
+    for fieldname in fieldsname:
+        try:
+            execute(f"ALTER SEARCH INDEX SCHEMA ON {ks_name}.{table_name} DROP field {fieldname}")
+        except Exception as ex:
+            _logger.warning(f"Unable to remove unnecessary field {fieldname}. Cause: {ex}")
+
+
 def _get_solr_type(model, index, search_field):
     if "." not in search_field.model_attr:
         attribute = getattr(model, search_field.model_attr, None)
@@ -315,8 +323,13 @@ def _create_index(model, index, connection=None):
         _define_types(ks_name, raw_cf_name)
 
         search_fields = [
-            attr for attr in index.__class__.__dict__.values() if issubclass(attr.__class__, fields.SearchField)
+            attr
+            for attr in index.__class__.__dict__["fields"].values()
+            if issubclass(attr.__class__, fields.SearchField)
         ]
+
+        if hasattr(index.Meta, "exclude") and len(index.Meta.exclude) > 0:
+            _drop_unnecessary_indexes(ks_name, raw_cf_name, index.Meta.exclude)
 
         document_fields = []
 
@@ -486,6 +499,11 @@ def sync(alias, only_model=None):
                         )
                     )
                     create_index(model, indexes_by_model.get(model))
+
+
+import pydevd_pycharm
+
+pydevd_pycharm.settrace("host.docker.internal", port=8181, stdoutToServer=True, stderrToServer=True)
 
 
 class Command(BaseCommand):
