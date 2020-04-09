@@ -22,10 +22,11 @@ pysolr
 #solrq
 
 #-- geospatial queries
-GDAL>=2.4.4
+GDAL
 geopy
 
 fuzzywuzzy
 
-git+https://github.com/intellstartup/django-cassandra-engine@bgds-1#egg=django-cassandra-engine-0
+django-cassandra-engine
+#git+https://github.com/intellstartup/django-cassandra-engine@bgds-1#egg=django-cassandra-engine-0
 git+https://github.com/intellstartup/django-rest-framework-cache@master#egg=rest-framework-cache-0
