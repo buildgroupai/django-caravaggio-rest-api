@@ -41,13 +41,14 @@ class TokenAuthSupportQueryString(TokenAuthentication):
     def authenticate(self, request):
         # Check if 'token_auth' is in the request query params.
         # Give precedence to 'Authorization' header.
-        if (settings.REST_FRAMEWORK["QUERY_STRING_AUTH_TOKEN"] in request.query_params and (
-                "HTTP_AUTHORIZATION" not in request.META)):
+        if settings.REST_FRAMEWORK["QUERY_STRING_AUTH_TOKEN"] in request.query_params and (
+            "HTTP_AUTHORIZATION" not in request.META
+        ):
             user, token = self.authenticate_credentials(
                 request.query_params.get(settings.REST_FRAMEWORK["QUERY_STRING_AUTH_TOKEN"])
             )
-
-            request.organization = SimpleLazyObject(lambda: get_organization(request))
-            return user, token
         else:
-            return super(TokenAuthSupportQueryString, self).authenticate(request)
+            user, token = super(TokenAuthSupportQueryString, self).authenticate(request)
+
+        request.organization = SimpleLazyObject(lambda: get_organization(request))
+        return user, token
