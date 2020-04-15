@@ -25,7 +25,7 @@ class CaravaggioRouter(routers.DefaultRouter):
             and destroy
         """
         # if actions is None, we register all the available operations
-        if not actions:
+        if actions is None:
             actions = list(VALID_ACTIONS_FOR_LIST.keys()) + list(VALID_ACTIONS_FOR_DETAIL)
 
         if not isinstance(actions, (list, set)):
