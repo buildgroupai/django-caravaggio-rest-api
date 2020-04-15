@@ -2,7 +2,7 @@
 # Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
 import logging
-from caravaggio_rest_api.users.models import CaravaggioOrganization
+from caravaggio_rest_api.users.models import CaravaggioOrganization, CaravaggioUser
 from django.conf import settings
 from django.utils.functional import SimpleLazyObject
 from rest_framework.authentication import TokenAuthentication
@@ -44,11 +44,14 @@ class TokenAuthSupportQueryString(TokenAuthentication):
         if settings.REST_FRAMEWORK["QUERY_STRING_AUTH_TOKEN"] in request.query_params and (
             "HTTP_AUTHORIZATION" not in request.META
         ):
-            user, token = self.authenticate_credentials(
+            user_auth_tuple = self.authenticate_credentials(
                 request.query_params.get(settings.REST_FRAMEWORK["QUERY_STRING_AUTH_TOKEN"])
             )
         else:
-            user, token = super(TokenAuthSupportQueryString, self).authenticate(request)
+            user_auth_tuple = super(TokenAuthSupportQueryString, self).authenticate(request)
+
+        if user_auth_tuple is None:
+            return None
 
         request.organization = SimpleLazyObject(lambda: get_organization(request))
-        return user, token
+        return user_auth_tuple
