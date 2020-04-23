@@ -43,8 +43,6 @@ class SubCommand(BaseCommand):
 
             subparser = subparsers.add_parser(command_name, help=command_class.help)
             command.add_arguments(subparser)
-            command_parser = command.create_parser(self.argv[0], self.argv[1])
-            subparser._actions = command_parser._actions
 
     def run_from_argv(self, argv):
         self.argv = argv
