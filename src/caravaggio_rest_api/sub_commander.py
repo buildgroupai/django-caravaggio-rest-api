@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020 BuildGroup Data Services Inc.
 import importlib
+import sys
 
-from django.core.management.base import BaseCommand
+from django.core.exceptions import ImproperlyConfigured
+from django.core.management import BaseCommand, CommandError, handle_default_options
+from django.core.management.base import SystemCheckError
+from django.db import connections
 
 
-class SubCommand(BaseCommand):
-    """SubCommands class. attrs: `sub_commands` (dict)"""
+class CaravaggioBaseCommand(BaseCommand):
+    """CaravaggioBaseCommand class. attrs: `sub_commands` (dict)"""
 
     argv = []
     sub_commands = {}
@@ -60,3 +64,37 @@ class SubCommand(BaseCommand):
             args = [self.argv[0]] + self.argv[2:]
             return command_class().run_from_argv(args)
         return command_class().execute(*args, **options)
+
+
+class CaravaggioSubCommand(BaseCommand):
+    """CaravaggioSubCommand class."""
+
+    def run_from_argv(self, argv):
+        parser = self.create_parser(argv[0], argv[1])
+        options, known_args = parser.parse_known_args(argv[2:])
+
+        cmd_options = vars(options)
+        args = cmd_options.pop("args", ())
+        handle_default_options(options)
+        try:
+            self.execute(*args, **cmd_options)
+        except Exception as e:
+            if options.traceback or not isinstance(e, CommandError):
+                raise
+
+            # SystemCheckError takes care of its own formatting.
+            if isinstance(e, SystemCheckError):
+                self.stderr.write(str(e), lambda x: x)
+            else:
+                self.stderr.write("%s: %s" % (e.__class__.__name__, e))
+            sys.exit(1)
+        finally:
+            try:
+                connections.close_all()
+            except ImproperlyConfigured:
+                # Ignore if connections aren't setup at this point (e.g. no
+                # configured settings).
+                pass
+
+    def handle(self, *args, **options):
+        raise NotImplementedError
