@@ -19,7 +19,7 @@ from django.test import TestCase
 # from django_cassandra_engine.test import TestCase
 from spitslurp import slurp
 
-from caravaggio_rest_api.users.models import CaravaggioClient
+from caravaggio_rest_api.users.models import CaravaggioClient, CaravaggioOrganization
 
 TEST_AVOID_INDEX_SYNC = "CARAVAGGIO_AVOID_INDEX_SYNC"
 
@@ -61,19 +61,30 @@ class CaravaggioBaseTest(TestCase):
     def setUpTestData(cls):
         super().setUpTestData()
 
-        cls.client = cls.create_client(email="tests@buildgroupai.com", name="BuildGroup Data Services Inc.")
+        if cls.client is None:
+            cls.client = cls.create_client(email="tests@buildgroupai.com", name="BuildGroup Data Services Inc.")
 
-        cls.user = cls.create_user(
-            email="admin@buildgroupai.ai",
-            first_name="Admin",
-            last_name="BGDS",
-            is_superuser=True,
-            is_staff=True,
-            is_client_staff=True,
-            client=cls.client,
-        )
+        if cls.user is None:
+            cls.user = cls.create_user(
+                email="admin@buildgroupai.ai",
+                first_name="Admin",
+                last_name="BGDS",
+                is_superuser=True,
+                is_staff=True,
+                is_client_staff=True,
+                client=cls.client,
+            )
 
-        cls.force_authenticate(cls.user)
+            cls.force_authenticate(cls.user)
+
+        if cls.organization is None:
+            cls.organization = cls.create_organization(
+                email="tests@buildgroupai.com",
+                name="BuildGroup Data Services Inc.",
+                is_active=True,
+                client=cls.client,
+                owner=cls.user,
+            )
 
     @classmethod
     def load_test_data(cls, file, serializer_class=None, username=None, type="JSON", return_pure_json=True):
@@ -153,6 +164,15 @@ class CaravaggioBaseTest(TestCase):
             "client": client,
         }
         return get_user_model().objects.create(**user_data)
+
+    @classmethod
+    def create_organization(cls, email, name, is_active, client, owner):
+
+        client = client if client else cls.client
+        owner = owner if owner else cls.user
+
+        organization_data = {"email": email, "name": name, "client": client, "is_active": is_active, "owner": owner}
+        return CaravaggioOrganization.objects.create(**organization_data)
 
     def _steps(self):
         for name in dir(self):  # dir() result is implicitly sorted
