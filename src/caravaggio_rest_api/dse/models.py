@@ -8,9 +8,11 @@ import six
 try:
     from dse.cqlengine.operators import BaseWhereOperator
     from dse.cqlengine import columns
+    from dse import ConsistencyLevel
 except ImportError:
     from cassandra.cqlengine.operators import BaseWhereOperator
     from cassandra.cqlengine import columns
+    from cassandra import ConsistencyLevel
 
 from datetime import datetime
 
@@ -67,6 +69,9 @@ class CustomDjangoCassandraModel(six.with_metaclass(CustomDjangoCassandraModelMe
     something we need, for instance, if we want to clean the DRF cache after
     and update/save/delete operation
     """
+
+    _cassandra_consistency_level_read = ConsistencyLevel.LOCAL_QUORUM
+    _cassandra_consistency_level_write = ConsistencyLevel.LOCAL_QUORUM
 
     __abstract__ = True
 
