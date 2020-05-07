@@ -61,10 +61,10 @@ class CaravaggioBaseTest(TestCase):
     def setUpTestData(cls):
         super().setUpTestData()
 
-        if 'client' in globals():
+        if 'client' not in globals():
             cls.client = cls.create_client(email="tests@buildgroupai.com", name="BuildGroup Data Services Inc.")
 
-        if 'user' in globals():
+        if 'user' not in globals():
             cls.user = cls.create_user(
                 email="admin@buildgroupai.ai",
                 first_name="Admin",
@@ -77,7 +77,7 @@ class CaravaggioBaseTest(TestCase):
 
             cls.force_authenticate(cls.user)
 
-        if 'organization' in globals():
+        if 'organization' not in globals():
             cls.organization = cls.create_organization(
                 email="tests@buildgroupai.com",
                 name="BuildGroup Data Services Inc.",
