@@ -87,18 +87,27 @@ class CaravaggioBaseTest(TestCase):
             )
 
     @classmethod
-    def load_test_data(cls, file, serializer_class=None, username=None, type="JSON", return_pure_json=True):
+    def load_test_data(
+            cls, file, serializer_class=None, username=None, type="JSON",
+            return_pure_json=True, request=None, replace=None, serializer_action=None):
 
         logging.info("Loading data from file {}".format(file))
 
         if not username:
             username = cls.user.username
 
-        request = RequestFactory().get("./fake_path")
-        request.user = get_user_model().objects.get(username=username)
+        if not request:
+            request = RequestFactory().get("./fake_path")
+
+        if not hasattr(request, "user") or not request.user:
+            request.user = get_user_model().objects.get(username=username)
 
         if type == "JSON":
-            data = json.loads(slurp(file))
+            file_content = slurp(file)
+            if replace:
+                for term, value in replace.items():
+                    file_content = file_content.replace(f"@@{term}@@", value)
+            data = json.loads(file_content)
 
             if serializer_class:
                 logging.info("Validating data using serializer {}".format(serializer_class))
@@ -112,8 +121,11 @@ class CaravaggioBaseTest(TestCase):
                         errors_by_resource["{}".format(index)] = serializer.errors
 
                     if not return_pure_json:
-                        instance = deserialize_instance(serializer, serializer.Meta.model)
-                        object_json.append(instance)
+                        if not serializer_action:
+                            instance = deserialize_instance(serializer, serializer.Meta.model)
+                            object_json.append(instance)
+                        else:
+                            object_json.append(getattr(serializer, serializer_action)(serializer.validated_data))
 
                 if has_errors:
                     raise AssertionError("There are some errors in the json data of the test", errors_by_resource)
