@@ -7,10 +7,12 @@ import logging
 import json
 
 from django.conf import settings
+from django.utils.deprecation import MiddlewareMixin
 
+from caravaggio_rest_api.drf.authentication import TokenAuthSupportQueryString
 from caravaggio_rest_api.logging.models import ApiAccess
 
-LOGGER = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class RequestLogMiddleware(object):
@@ -56,6 +58,15 @@ class RequestLogMiddleware(object):
             ApiAccess.objects.create(**log_data)
 
             # save log_data in some way
-            LOGGER.info(log_data)
+            _logger.info(log_data)
 
         return response
+
+
+class OrganizationMiddleware(MiddlewareMixin):
+    """ This middleware will use the DRF Token authentication to initialize the
+    request with the correct organization.
+    """
+
+    def process_request(self, request):
+        TokenAuthSupportQueryString().authenticate(request)
