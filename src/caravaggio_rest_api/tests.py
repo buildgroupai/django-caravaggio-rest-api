@@ -14,7 +14,8 @@ from django.test.client import RequestFactory
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from django.test import TestCase
+from django.test import TestCase, modify_settings
+
 
 # from django_cassandra_engine.test import TestCase
 from spitslurp import slurp
@@ -61,23 +62,42 @@ class CaravaggioBaseTest(TestCase):
     def setUpTestData(cls):
         super().setUpTestData()
 
-        if 'client' not in globals():
+        if "client" not in globals():
             cls.client = cls.create_client(email="tests@buildgroupai.com", name="BuildGroup Data Services Inc.")
 
-        if 'user' not in globals():
-            cls.user = cls.create_user(
-                email="admin@buildgroupai.ai",
-                first_name="Admin",
-                last_name="BGDS",
+        if "user" not in globals():
+            cls.super_user = cls.create_user(
+                email="superuser@buildgroupai.ai",
+                first_name="Superuser",
+                last_name="BGDS IT",
                 is_superuser=True,
                 is_staff=True,
                 is_client_staff=True,
+            )
+
+            cls.client_admin = cls.create_user(
+                email="admin@buildgroupai.ai",
+                first_name="Admin",
+                last_name="BGDS App",
+                is_superuser=False,
+                is_staff=False,
+                is_client_staff=True,
+                client=cls.client,
+            )
+
+            cls.user = cls.create_user(
+                email="user@buildgroupai.ai",
+                first_name="User",
+                last_name="BuildGroup LLC",
+                is_superuser=False,
+                is_staff=False,
+                is_client_staff=False,
                 client=cls.client,
             )
 
             cls.force_authenticate(cls.user)
 
-        if 'organization' not in globals():
+        if "organization" not in globals():
             cls.organization = cls.create_organization(
                 email="tests@buildgroupai.com",
                 name="BuildGroup Data Services Inc.",
@@ -88,8 +108,16 @@ class CaravaggioBaseTest(TestCase):
 
     @classmethod
     def load_test_data(
-            cls, file, serializer_class=None, username=None, type="JSON",
-            return_pure_json=True, request=None, replace=None, serializer_action=None):
+        cls,
+        file,
+        serializer_class=None,
+        username=None,
+        type="JSON",
+        return_pure_json=True,
+        request=None,
+        replace=None,
+        serializer_action=None,
+    ):
 
         logging.info("Loading data from file {}".format(file))
 
@@ -225,6 +253,9 @@ class CaravaggioBaseTest(TestCase):
         self.assertEqual(len(removed), 0, "Keys were removed! {}".format(removed))
         self.assertEqual(len(modified), 0, "Values are not identical! {}".format(modified))
 
+    @modify_settings(
+        MIDDLEWARE={"append": "caravaggio_rest_api.drf.middleware.OrganizationMiddleware",}
+    )
     def test_steps(self):
         for name, step in self._steps():
             try:
