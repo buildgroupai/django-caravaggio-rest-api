@@ -148,7 +148,7 @@ class CaravaggioBaseTest(TestCase):
                         has_errors = True
                         errors_by_resource["{}".format(index)] = serializer.errors
 
-                    if not return_pure_json:
+                    elif not return_pure_json:
                         if not serializer_action:
                             instance = deserialize_instance(serializer, serializer.Meta.model)
                             object_json.append(instance)
