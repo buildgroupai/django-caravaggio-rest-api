@@ -117,6 +117,7 @@ class CaravaggioBaseTest(TestCase):
         request=None,
         replace=None,
         serializer_action=None,
+        context=None
     ):
 
         logging.info("Loading data from file {}".format(file))
@@ -129,6 +130,12 @@ class CaravaggioBaseTest(TestCase):
 
         if not hasattr(request, "user") or not request.user:
             request.user = get_user_model().objects.get(username=username)
+
+        if not context:
+            context = {"request": request}
+
+        if not hasattr(context, "request"):
+            context["request"] = request
 
         if type == "JSON":
             file_content = slurp(file)
@@ -143,7 +150,7 @@ class CaravaggioBaseTest(TestCase):
                 errors_by_resource = {}
                 object_json = []
                 for index, resource in enumerate(data):
-                    serializer = serializer_class(data=resource, context={"request": request})
+                    serializer = serializer_class(data=resource, context=context)
                     if not serializer.is_valid():
                         has_errors = True
                         errors_by_resource["{}".format(index)] = serializer.errors
