@@ -6,7 +6,6 @@ import json
 from caravaggio_rest_api.dse.backends.utils import DSEPaginator
 
 from caravaggio_rest_api.haystack.backends.utils import SolrSearchPaginator
-from debug_toolbar.panels.sql.tracking import NormalCursorWrapper
 from django.db import connections
 from haystack.utils.app_loading import haystack_get_model
 
@@ -273,7 +272,13 @@ class DSEBackend(CassandraSolrSearchBackend):
             select_statement = SimpleStatement(query, fetch_size=fetch_size)
             with self.connection.cursor() as cursor:
                 # we need the cursor from the django cassandra engine, not the wrappers
-                if isinstance(cursor, NormalCursorWrapper):
+                normal_consumer_wrapper_available = True
+                try:
+                    from debug_toolbar.panels.sql.tracking import NormalCursorWrapper
+                except:
+                    normal_consumer_wrapper_available = False
+
+                if normal_consumer_wrapper_available and isinstance(cursor, NormalCursorWrapper):
                     cursor = cursor.cursor.cursor
                 else:
                     cursor = cursor.cursor
