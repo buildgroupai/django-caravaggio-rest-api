@@ -19,7 +19,7 @@ from haystack.exceptions import MissingDependency, FacetingError, MoreLikeThisEr
 from haystack.models import SearchResult
 
 from caravaggio_rest_api.haystack.backends import SolrSearchNode
-from caravaggio_rest_api.haystack.backends.utils import is_valid_uuid
+from caravaggio_rest_api.haystack.backends.utils import is_valid_uuid, SolrSearchPaginator
 from caravaggio_rest_api.haystack.inputs import RegExp
 
 try:
@@ -694,3 +694,4 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
 class CassandraSolrEngine(BaseEngine):
     backend = CassandraSolrSearchBackend
     query = CassandraSolrSearchQuery
+    paginator = SolrSearchPaginator
