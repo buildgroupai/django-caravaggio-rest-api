@@ -108,6 +108,14 @@ class DSEBackend(CassandraSolrSearchBackend):
 
                         if string_key in index.fields and hasattr(index.fields[string_key], "convert"):
                             additional_fields[string_key] = index.fields[string_key].convert(value)
+                        elif hasattr(model, string_key):
+                            column = getattr(model, string_key)
+                            if hasattr(column, "column"):
+                                additional_fields[string_key] = column.column.to_python(value)
+                            elif hasattr(column, "to_python"):
+                                additional_fields[string_key] = column.to_python(value)
+                            else:
+                                additional_fields[string_key] = self.conn._to_python(value)
                         else:
                             additional_fields[string_key] = self.conn._to_python(value)
 
