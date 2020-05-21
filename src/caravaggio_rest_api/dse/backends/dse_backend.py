@@ -337,6 +337,9 @@ class DSEBackend(CassandraSolrSearchBackend):
         fields = kwargs.pop("fl", None)
         if fields:
             if isinstance(fields, list):
+                for i, field in enumerate(fields):
+                    if not field.startswith('"') and not field == "score":
+                        fields[i] = '"%s"' % field
                 fields = " ".join(fields)
 
             fields = fields.replace(" score", "")
