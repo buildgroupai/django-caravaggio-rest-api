@@ -432,6 +432,8 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
 
             if filter_type in ["regex", "iregex"]:
                 value = RegExp(value)
+            elif filter_type in ["fuzzy"]:
+                value = PythonData(value)
             elif isinstance(value, six.string_types):
                 # It's not an ``InputType``. Assume ``Clean``.
                 value = Clean(value)
@@ -445,6 +447,9 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
             # Then convert whatever we get back to what pysolr wants if needed.
             prepared_value = self.backend.conn._from_python(prepared_value)
 
+        words_in_value = len(prepared_value.split())
+        words_in_value = 0 if words_in_value == 1 else 1
+
         # 'content' is a special reserved word, much like 'pk' in
         # Django's ORM layer. It indicates 'no special field'.
         if field == "content":
@@ -453,61 +458,40 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
             index_fieldname = "%s" % connections[self._using].get_unified_index().get_index_fieldname(field)
 
         filter_types = {
-            "content": "%s",
-            "contains": "*%s*",
-            "endswith": "*%s",
-            "startswith": "%s*",
-            "exact": "%s",
-            "gt": "{%s TO *}",
-            "gte": "[%s TO *]",
-            "lt": "{* TO %s}",
-            "lte": "[* TO %s]",
-            "fuzzy": "%s~",
-            "regex": "/%s/",
-            "iregex": "/%s/",
+            "content": ["%s", "\"%s\""],
+            "contains": ["*%s*", "\"*%s*\""],
+            "endswith": ["*%s", "\"*%s\""],
+            "startswith": ["%s*", "\"%s*\""],
+            "exact": ["%s", "\"%s\""],
+            "gt": ["{%s TO *}"],
+            "gte": ["[%s TO *]"],
+            "lt": ["{* TO %s}"],
+            "lte": ["[* TO %s]"],
+            "fuzzy": ["%s~", "\"%s\"~"],
+            "regex": ["/%s/"],
+            "iregex": ["/%s/"],
         }
 
         if value.post_process is False:
             query_frag = prepared_value
         else:
-            if field == "text":
-                operator = ""
-                if "|" in prepared_value:
-                    operator = "OR"
-                    terms = prepared_value.split("|")
-                elif "&" in prepared_value:
-                    operator = "AND"
-                    terms = prepared_value.split("&")
-                else:
-                    terms = [prepared_value]
-
-                if len(terms) == 1:
-                    query_frag = '"{}"'.format(terms[0])
-                else:
-                    terms = ['"{}"'.format(term) for term in terms]
-                    query_frag = "(%s)" % " {} ".format(operator).join(terms)
-            elif filter_type in ["content", "contains", "startswith", "endswith", "fuzzy", "regex", "iregex"]:
+            if filter_type in ["content", "exact", "contains", "startswith", "endswith", "fuzzy", "regex", "iregex"]:
                 if value.input_type_name == "exact":
                     query_frag = prepared_value
+                elif filter_type == "fuzzy":
+                    # Check if we are using phrases (words between ")
+                    # match = re.compile('^([^\\\~]*)\\\~?(\d*)?$').match(prepared_value)
+                    match = re.compile('^([^\~]*)\~?(\d*)?$').match(prepared_value)
+                    if match:
+                        # If the user provided the ~[\d] part of the fuzzy
+                        if match.group(2):
+                            if not words_in_value:
+                                query_frag = "%s~%s" % match.groups()
+                            else:
+                                query_frag = "\"%s\"~%s" % match.groups()
+                    query_frag = filter_types[filter_type][words_in_value] % prepared_value if not len(query_frag) else query_frag
                 else:
-                    # Iterate over terms & incorportate the converted
-                    # form of each into the query.
-                    terms = []
-
-                    for possible_value in prepared_value.split(" "):
-                        terms.append(
-                            filter_types[filter_type]
-                            % (
-                                self.backend.conn._from_python(possible_value)
-                                if filter_type not in ["regex", "iregex"]
-                                else possible_value
-                            )
-                        )
-
-                    if len(terms) == 1:
-                        query_frag = terms[0]
-                    else:
-                        query_frag = "(%s)" % " AND ".join(terms)
+                    query_frag = filter_types[filter_type][words_in_value] % prepared_value
             elif filter_type == "in":
                 in_options = []
 
@@ -527,12 +511,12 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
                     query_frag = prepared_value
                 else:
                     prepared_value = Exact(prepared_value).prepare(self)
-                    query_frag = filter_types[filter_type] % prepared_value
+                    query_frag = filter_types[filter_type][words_in_value] % prepared_value
             else:
                 if value.input_type_name != "exact":
                     prepared_value = Exact(prepared_value).prepare(self)
 
-                query_frag = filter_types[filter_type] % prepared_value
+                query_frag = filter_types[filter_type][words_in_value] % prepared_value
 
         if len(query_frag) and not isinstance(value, Raw) and filter_type not in ["regex", "iregex"]:
             if not query_frag.startswith("(") and not query_frag.endswith(")"):
@@ -548,10 +532,15 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
 
         # Get the model attribute that is connected to the current
         # index search field.
-        model_attr = searchable_fields[index_fieldname].model_attr
+        # If the param was for a dict entry, the index_fieldname won't be in the list of
+        # searcheable fields, as the field is a combination of the fieldname plus the key
+        if index_fieldname in searchable_fields:
+            model_attr = searchable_fields[index_fieldname].model_attr
 
-        if model_attr and "." in model_attr:
-            return "{{!tuple v='{field}:{value}'}}".format(field=model_attr, value=query_frag)
+            if model_attr and "." in model_attr:
+                return "{{!tuple v='{field}:{value}'}}".format(field=model_attr, value=query_frag)
+            else:
+                return "%s:%s" % (index_fieldname, query_frag)
         else:
             return "%s:%s" % (index_fieldname, query_frag)
 

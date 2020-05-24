@@ -7,10 +7,11 @@ import warnings
 import operator
 from itertools import chain
 from dateutil import parser
+from django.db.models import Q
 
 from django.utils import six
 
-from rest_framework.fields import UUIDField
+from rest_framework.fields import UUIDField, DictField
 
 from drf_haystack.query import FilterQueryBuilder, FacetQueryBuilder
 from drf_haystack.utils import merge_dict
@@ -193,6 +194,12 @@ class CaravaggioFilterQueryBuilder(FilterQueryBuilder):
                 ):
                     continue
 
+            operator_term = operator.or_
+            if "and" in  param_parts:
+                operator_term = operator.and_
+                param_parts.pop(param_parts.index("and"))
+                param = param.replace("__and", "")
+
             # START CARAVAGGIO (UUID fields)
             # There are fields that can be expressed in different format,
             # for instance the UUID, you can inform them using '-' or not.
@@ -209,6 +216,9 @@ class CaravaggioFilterQueryBuilder(FilterQueryBuilder):
                             ]
                         else:
                             value[0] = field_repr.to_representation(field_repr.to_internal_value(value[0]))
+                    if isinstance(field_repr, DictField):
+                        param = f"{base_param}_{param_parts.pop(1)}__{param_parts[1]}"
+                        param_parts[0] = param
             # END CARAVAGGIO
 
             field_queries = []
@@ -221,7 +231,7 @@ class CaravaggioFilterQueryBuilder(FilterQueryBuilder):
 
             field_queries = [fq for fq in field_queries if fq]
             if len(field_queries) > 0:
-                term = six.moves.reduce(operator.or_, field_queries)
+                term = six.moves.reduce(operator_term, field_queries)
                 if excluding_term:
                     applicable_exclusions.append(term)
                 else:

@@ -97,7 +97,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         in their name but do not have "Hardware"
 
         """
-        path = "{0}?specialties=Internet".format(reverse("company-search-list"))
+        path = "{0}?specialties=internet".format(reverse("company-search-list"))
         _logger.info("Path: {}".format(path))
         response = self.api_client.get(path)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -105,7 +105,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
 
         # Get companies that contains *Internet* in their specialties
         # but do not contains "Hardware"
-        path = "{0}?specialties__contains=Internet&" "specialties__not=Hardware".format(reverse("company-search-list"))
+        path = "{0}?specialties=internet&specialties__not=hardware".format(reverse("company-search-list"))
         _logger.info("Path: {}".format(path))
         response = self.api_client.get(path)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -136,7 +136,17 @@ class GetAllCompanyTest(CaravaggioBaseTest):
              with longitude -123.25022 and latitude 44.59641.
 
         """
-        path = "{0}facets/?country_code=limit:1".format(reverse("company-search-list"))
+        start_date = datetime.now() - timedelta(days=50 * 365)
+        end_date = datetime.now()
+        r = relativedelta.relativedelta(end_date, start_date)
+        expected_buckets = math.ceil((r.years * 12 + r.months) / 6)
+
+        foundation_facet = \
+            f"start_date:{start_date:%Y-%m-%d},end_date:{end_date:%Y-%m-%d},gap_by:month,gap_amount:6"
+
+        path = f"{reverse('company-search-list')}facets/?facet.field.country_code=limit:1&" \
+               f"facet.field.specialties&facet.field.stock_symbol&facet.field.founders&" \
+               f"facet.field.foundation_date={foundation_facet}"
         _logger.info("Path: {}".format(path))
         response = self.api_client.get(path)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -165,11 +175,6 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         self.assertEqual(response.data["fields"]["specialties"][4]["text"], "Telecommunications")
         self.assertEqual(response.data["fields"]["specialties"][4]["count"], 1)
 
-        start_date = datetime.now() - timedelta(days=50 * 365)
-        end_date = datetime.now()
-        r = relativedelta.relativedelta(end_date, start_date)
-        expected_buckets = math.ceil((r.years * 12 + r.months) / 6)
-
         self.assertIn(len(response.data["dates"]["foundation_date"]), [expected_buckets, expected_buckets + 1])
 
         def get_date_bucket_text(start_date, bucket_num, months_bw_buckets):
@@ -187,11 +192,9 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         1st Jan 2010 til today. Total: 8 years/buckets
 
         """
-        path = (
-            "{0}facets/?"
-            "foundation_date=start_date:20th May 2010,"
-            "end_date:10th Jun 2015,gap_by:year,gap_amount:1".format(reverse("company-search-list"))
-        )
+        path = f"{reverse('company-search-list')}facets/?facet.field.foundation_date=start_date:2010-05-20," \
+               f"end_date:2015-06-10,gap_by:year,gap_amount:1"
+
         _logger.info("Path: {}".format(path))
         response = self.api_client.get(path)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -206,7 +209,9 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         """" Drill down when selection facets
 
         """
-        path = "{0}facets/?selected_facets=specialties_exact:Hardware&" "selected_facets=country_code_exact:USA".format(
+        path = "{0}facets/?facet.field.specialties&facet.field.country_code&" \
+               "selected_facets=specialties_exact:hardware&" \
+               "selected_facets=country_code_exact:usa".format(
             reverse("company-search-list")
         )
         _logger.info("Path: {}".format(path))
@@ -235,3 +240,24 @@ class GetAllCompanyTest(CaravaggioBaseTest):
 
         self.assertTrue("Telecommunications" in specialties)
         self.assertEqual(specialties["Telecommunications"], 1)
+
+    def step9_fuzzy_search(self):
+        # Find companies that contains the words "on-premises services" with 2 words within
+        # each other.
+        # The BigML Description: "BigML offers cloud-based and on-premises machine learning services, distributed ...",
+        path = "{0}?short_description__fuzzy=on-premises services~2".format(reverse("company-search-list"))
+        _logger.info("Path: {}".format(path))
+        response = self.api_client.get(path)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response.data["total"], 1)
+        self.assertEqual(response.data["results"][0]["name"], "BigML")
+
+        # Now we search using the same criteria than before but adding another criteria, in this case
+        # the matching of a word as part of the description with 1 letter of difference.
+        path = "{0}?short_description__fuzzy=on-premises services~2,provide~1".format(reverse("company-search-list"))
+        _logger.info("Path: {}".format(path))
+        response = self.api_client.get(path)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response.data["total"], 2)

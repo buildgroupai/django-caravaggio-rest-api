@@ -17,3 +17,9 @@ class DynamicFieldsSerializer(serializers.ModelSerializer):
             all_fields = set(self.fields.keys())
             for not_requested in all_fields - set(fields):
                 self.fields.pop(not_requested)
+
+    def get_request_user(self):
+        return self.context.get("request").user
+
+    def get_request_organization(self):
+        return self.context.get("request").organization
