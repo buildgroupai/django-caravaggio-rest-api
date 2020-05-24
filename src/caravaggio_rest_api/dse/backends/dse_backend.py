@@ -282,6 +282,7 @@ class DSEBackend(CassandraSolrSearchBackend):
             search_kwargs["paging"] = "driver"
         try:
             query = self.mount_query(model.__table_name__, query_string, select_fields, rows, is_count, **search_kwargs)
+            self.log.debug(f"CQL Query: {query}")
 
             select_statement = SimpleStatement(query, fetch_size=fetch_size)
             with self.connection.cursor() as cursor:
