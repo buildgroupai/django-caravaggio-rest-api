@@ -44,6 +44,19 @@ class CaravaggioSearchQuerySet(SearchQuerySet):
         clone.query.add_range_facet(field, **options)
         return clone
 
+    def heatmap_facet(self, field, **options):
+        """Adds heatmap faceting to a query for the provided field. Only for
+         Solr."""
+        clone = self._clone()
+        if not getattr(clone.query, "add_heatmap_facet"):
+            raise TypeError(
+                "'{}.{}' is not valid SearchQuerySet class. " "It has not support for range facets.",
+                clone.query.__module__,
+                clone.query.__name__,
+            )
+        clone.query.add_heatmap_facet(field, **options)
+        return clone
+
     def facets_option(self, facet_param, value):
         """Adds faceting option to a query for the provided fields.
         Only for Solr. Options: facets.mincount, facets.missing, include,

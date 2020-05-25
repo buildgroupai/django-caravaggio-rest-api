@@ -3,7 +3,13 @@
 # All rights reserved.
 import json
 
+try:
+    from dse.util import Point, LineString
+except ImportError:
+    from cassandra.util import Point, LineString
+
 from haystack import indexes
+from haystack.fields import LocationField
 
 
 class BaseSearchIndex(indexes.SearchIndex):
@@ -38,3 +44,19 @@ class CaravaggioListField(indexes.MultiValueField):
             new_value.append(json.loads(_value))
 
         return new_value
+
+
+class CaravaggioPointField(LocationField):
+    def convert(self, value):
+        if isinstance(value, Point):
+            return value
+
+        return super().convert(value)
+
+
+class CaravaggioLineStringField(LocationField):
+    def convert(self, value):
+        if isinstance(value, LineString):
+            return value
+
+        return super().convert(value)

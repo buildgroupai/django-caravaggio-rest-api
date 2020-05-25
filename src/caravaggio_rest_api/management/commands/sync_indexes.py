@@ -93,7 +93,9 @@ def _define_types(ks_name, raw_cf_name):
             f" WITH {STR_SEARCH_JSON_SNIPPED};"
         )
     except Exception as ex:
-        _logger.warning("Maybe te field type ISCStrField has been already" " defined in the schema. Cause: {}".format(ex))
+        _logger.warning(
+            "Maybe te field type ISCStrField has been already" " defined in the schema. Cause: {}".format(ex)
+        )
         pass
 
     types = ["TupleField", "SimpleDateField"]
@@ -105,8 +107,7 @@ def _define_types(ks_name, raw_cf_name):
                 f" @class='com.datastax.bdp.search.solr.core.types.{type}'];"
             )
         except Exception as ex:
-            _logger.warning(
-                f"Maybe te field type {type} has been already" " defined in the schema. Cause: {ex}")
+            _logger.warning(f"Maybe te field type {type} has been already" " defined in the schema. Cause: {ex}")
             pass
 
     types = ["TrieLongField", "TrieDoubleField", "TrieIntField", "BoolField", "UUIDField", "TrieDateField"]
@@ -119,8 +120,7 @@ def _define_types(ks_name, raw_cf_name):
                 f" @class='org.apache.solr.schema.{type}'];"
             )
         except Exception as ex:
-            _logger.warning(
-                f"Maybe te field type {type} has been already" " defined in the schema. Cause: {ex}")
+            _logger.warning(f"Maybe te field type {type} has been already" " defined in the schema. Cause: {ex}")
             pass
 
     # Define a Point and LineString types for geospatial queries
@@ -332,15 +332,17 @@ def _get_solr_type(model, index, search_field):
         if search_field.model_attr in index.Meta.text_fields and not search_field.faceted:
             return "TextField"
 
-        if attribute.column.primary_key or attribute.column.partition_key or (
-                hasattr(attribute.column, "unique") and attribute.column.unique):
+        if (
+            attribute.column.primary_key
+            or attribute.column.partition_key
+            or (hasattr(attribute.column, "unique") and attribute.column.unique)
+        ):
             return "StrField"
 
         _logger.debug("ISCStrField for field: {}".format(search_field.model_attr))
         return "ISCStrField"
     except Exception as ex:
-        _logger.error(
-            f"Unable to process index field [{search_field.index_fieldname}] of model {model}. Cause: {ex}")
+        _logger.error(f"Unable to process index field [{search_field.index_fieldname}] of model {model}. Cause: {ex}")
         raise ex
 
 
@@ -360,8 +362,7 @@ def _create_index(model, index, connection=None):
         _logger.info("Creating SEARCH INDEX if not exists for model: {}".format(model))
         meta.keyspaces[ks_name].tables[raw_cf_name]
         # primary_keys = model._primary_keys.keys()
-        execute("CREATE SEARCH INDEX IF NOT EXISTS ON {0}.{1};".
-                format(ks_name, raw_cf_name),timeout=30.0)
+        execute("CREATE SEARCH INDEX IF NOT EXISTS ON {0}.{1};".format(ks_name, raw_cf_name), timeout=30.0)
 
         if hasattr(index.Meta, "index_settings"):
             for param, value in index.Meta.index_settings.items():
@@ -448,13 +449,14 @@ def _create_index(model, index, connection=None):
 
             # Indexed field?
             if not (attribute and isinstance(attribute.column, columns.Map)) and not (
-                    attribute and hasattr(attribute.column, "value_col") and (
-                    isinstance(attribute.column.value_col, columns.UserDefinedType))):
+                attribute
+                and hasattr(attribute.column, "value_col")
+                and (isinstance(attribute.column.value_col, columns.UserDefinedType))
+            ):
                 execute(
                     "ALTER SEARCH INDEX SCHEMA ON {0}.{1}"
                     " SET fields.field[@name='{2}']@type='{3}';".format(
-                        ks_name, raw_cf_name, search_field.model_attr,
-                        _get_solr_type(model, index, search_field)
+                        ks_name, raw_cf_name, search_field.model_attr, _get_solr_type(model, index, search_field)
                     )
                 )
                 if search_field.indexed:
@@ -474,8 +476,10 @@ def _create_index(model, index, connection=None):
 
             # Facet field?: force docValues=true
             if not (attribute and isinstance(attribute.column, columns.Map)) and not (
-                    attribute and hasattr(attribute.column, "value_col") and (
-                    isinstance(attribute.column.value_col, columns.UserDefinedType))):
+                attribute
+                and hasattr(attribute.column, "value_col")
+                and (isinstance(attribute.column.value_col, columns.UserDefinedType))
+            ):
                 if search_field.is_multivalued:
                     execute(
                         "ALTER SEARCH INDEX SCHEMA ON {0}.{1}"
@@ -494,10 +498,12 @@ def _create_index(model, index, connection=None):
             # All the document fields have to be TextFields to be
             # processed as tokens
             if not (attribute and isinstance(attribute.column, columns.Map)) and not (
-                    attribute and hasattr(attribute.column, "value_col") and (
-                    isinstance(attribute.column.value_col, columns.UserDefinedType))):
+                attribute
+                and hasattr(attribute.column, "value_col")
+                and (isinstance(attribute.column.value_col, columns.UserDefinedType))
+            ):
                 if issubclass(search_field.__class__, fields.CharField):
-                    #if search_field.model_attr in index.Meta.text_fields:
+                    # if search_field.model_attr in index.Meta.text_fields:
                     if search_field.model_attr in index.Meta.text_fields and not search_field.faceted:
                         _logger.info("Changing SEARCH INDEX field {0} to TextField".format(search_field.model_attr))
                         execute(

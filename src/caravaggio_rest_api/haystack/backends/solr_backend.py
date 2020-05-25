@@ -420,6 +420,13 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
         self.range_facets = {}
         self.facets_options = {}
 
+    @staticmethod
+    def is_function(query):
+        if not isinstance(query, str):
+            return False
+
+        return re.match(r"^[A-Za-z]*\(.*\)$", query)
+
     def build_query_fragment(self, field, filter_type, value):
         from haystack import connections
 
@@ -434,6 +441,8 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
                 value = RegExp(value)
             elif filter_type in ["fuzzy"]:
                 value = PythonData(value)
+            elif self.is_function(value):
+                value = Exact(value)
             elif isinstance(value, six.string_types):
                 # It's not an ``InputType``. Assume ``Clean``.
                 value = Clean(value)
@@ -447,8 +456,9 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
             # Then convert whatever we get back to what pysolr wants if needed.
             prepared_value = self.backend.conn._from_python(prepared_value)
 
-        words_in_value = len(prepared_value.split())
-        words_in_value = 0 if words_in_value == 1 else 1
+        if isinstance(prepared_value, str):
+            words_in_value = len(prepared_value.split())
+            words_in_value = 0 if words_in_value == 1 else 1
 
         # 'content' is a special reserved word, much like 'pk' in
         # Django's ORM layer. It indicates 'no special field'.
@@ -458,16 +468,16 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
             index_fieldname = "%s" % connections[self._using].get_unified_index().get_index_fieldname(field)
 
         filter_types = {
-            "content": ["%s", "\"%s\""],
-            "contains": ["*%s*", "\"*%s*\""],
-            "endswith": ["*%s", "\"*%s\""],
-            "startswith": ["%s*", "\"%s*\""],
-            "exact": ["%s", "\"%s\""],
+            "content": ["%s", '"%s"'],
+            "contains": ["*%s*", '"*%s*"'],
+            "endswith": ["*%s", '"*%s"'],
+            "startswith": ["%s*", '"%s*"'],
+            "exact": ["%s", '"%s"'],
             "gt": ["{%s TO *}"],
             "gte": ["[%s TO *]"],
             "lt": ["{* TO %s}"],
             "lte": ["[* TO %s]"],
-            "fuzzy": ["%s~", "\"%s\"~"],
+            "fuzzy": ["%s~", '"%s"~'],
             "regex": ["/%s/"],
             "iregex": ["/%s/"],
         }
@@ -481,15 +491,19 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
                 elif filter_type == "fuzzy":
                     # Check if we are using phrases (words between ")
                     # match = re.compile('^([^\\\~]*)\\\~?(\d*)?$').match(prepared_value)
-                    match = re.compile('^([^\~]*)\~?(\d*)?$').match(prepared_value)
+                    match = re.compile("^([^\~]*)\~?(\d*)?$").match(prepared_value)
                     if match:
                         # If the user provided the ~[\d] part of the fuzzy
                         if match.group(2):
                             if not words_in_value:
                                 query_frag = "%s~%s" % match.groups()
                             else:
-                                query_frag = "\"%s\"~%s" % match.groups()
-                    query_frag = filter_types[filter_type][words_in_value] % prepared_value if not len(query_frag) else query_frag
+                                query_frag = '"%s"~%s' % match.groups()
+                    query_frag = (
+                        filter_types[filter_type][words_in_value] % prepared_value
+                        if not len(query_frag)
+                        else query_frag
+                    )
                 else:
                     query_frag = filter_types[filter_type][words_in_value] % prepared_value
             elif filter_type == "in":

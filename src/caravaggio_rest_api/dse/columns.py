@@ -12,6 +12,14 @@ except ImportError:
 LOGGER = logging.getLogger(__name__)
 
 
+class Point(columns.Text):
+    db_type = "'PointType'"
+
+
+class LineString(columns.Text):
+    db_type = "'LineStringType'"
+
+
 class KeyEncodedMap(columns.Map):
     """
     This type of Map is needed if we want to be able to index the Map columns

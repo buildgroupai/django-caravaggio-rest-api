@@ -46,7 +46,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         current_path = os.path.dirname(os.path.abspath(__file__))
         cls.companies = GetAllCompanyTest.load_test_data("{}/companies.json".format(current_path), CompanySerializerV1)
 
-    def step1_create_companies(self):
+    def step01_create_companies(self):
         for company in self.companies:
             _logger.info("POST Company: {}".format(company["name"]))
             response = self.api_client.post(
@@ -61,7 +61,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         # We need to give time for the next search tests
         time.sleep(0.5)
 
-    def step2_get_companies(self):
+    def step02_get_companies(self):
         for index, company_id in enumerate(self.persisted_companies):
             original_company = self.companies[index]
             path = "{0}{1}/".format(reverse("company-list"), company_id)
@@ -73,7 +73,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
                 response.data, original_company, ["_id", "created_at", "updated_at"]
             )
 
-    def step3_search_text(self):
+    def step03_search_text(self):
         """ We search any company that contains a text in the text field,
         that is a field that concentrates all the textual fields
         (corpus of the company)
@@ -90,7 +90,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             response.data["results"][0], self.companies[1], ["_id", "created_at", "updated_at", "score"]
         )
 
-    def step4_search_specialties(self):
+    def step04_search_specialties(self):
         """" Get companies that have "Internet" in their specialties.
 
         And get companies that have specialties that contains "*Internet*"
@@ -116,7 +116,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             response.data["results"][0], self.companies[1], ["_id", "created_at", "updated_at", "score"]
         )
 
-    def step5_search_geo(self):
+    def step05_search_geo(self):
         """" Will get all the companies within 10 km from the point
              with longitude -123.25022 and latitude 44.59641.
 
@@ -131,7 +131,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
             response.data["results"][0], self.companies[1], ["_id", "created_at", "updated_at", "score"]
         )
 
-    def step6_search_facets(self):
+    def step06_search_facets(self):
         """" Will get all the companies within 10 km from the point
              with longitude -123.25022 and latitude 44.59641.
 
@@ -141,12 +141,13 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         r = relativedelta.relativedelta(end_date, start_date)
         expected_buckets = math.ceil((r.years * 12 + r.months) / 6)
 
-        foundation_facet = \
-            f"start_date:{start_date:%Y-%m-%d},end_date:{end_date:%Y-%m-%d},gap_by:month,gap_amount:6"
+        foundation_facet = f"start_date:{start_date:%Y-%m-%d},end_date:{end_date:%Y-%m-%d},gap_by:month,gap_amount:6"
 
-        path = f"{reverse('company-search-list')}facets/?facet.field.country_code=limit:1&" \
-               f"facet.field.specialties&facet.field.stock_symbol&facet.field.founders&" \
-               f"facet.field.foundation_date={foundation_facet}"
+        path = (
+            f"{reverse('company-search-list')}facets/?facet.field.country_code=limit:1&"
+            f"facet.field.specialties&facet.field.stock_symbol&facet.field.founders&"
+            f"facet.field.foundation_date={foundation_facet}"
+        )
         _logger.info("Path: {}".format(path))
         response = self.api_client.get(path)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -187,13 +188,15 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         self.assertEqual(response.data["dates"]["foundation_date"][52]["text"], get_date_bucket_text(start_date, 52, 6))
         self.assertEqual(response.data["dates"]["foundation_date"][84]["text"], get_date_bucket_text(start_date, 84, 6))
 
-    def step7_search_facets_ranges(self):
+    def step07_search_facets_ranges(self):
         """" Let's change the foundation_date facet range by all the years from
         1st Jan 2010 til today. Total: 8 years/buckets
 
         """
-        path = f"{reverse('company-search-list')}facets/?facet.field.foundation_date=start_date:2010-05-20," \
-               f"end_date:2015-06-10,gap_by:year,gap_amount:1"
+        path = (
+            f"{reverse('company-search-list')}facets/?facet.field.foundation_date=start_date:2010-05-20,"
+            f"end_date:2015-06-10,gap_by:year,gap_amount:1"
+        )
 
         _logger.info("Path: {}".format(path))
         response = self.api_client.get(path)
@@ -205,14 +208,14 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         self.assertTrue("2011-01-01T00:00:00Z" in buckets)
         self.assertEqual(buckets["2011-01-01T00:00:00Z"], 1)
 
-    def step8_search_facets_narrow(self):
+    def step08_search_facets_narrow(self):
         """" Drill down when selection facets
 
         """
-        path = "{0}facets/?facet.field.specialties&facet.field.country_code&" \
-               "selected_facets=specialties_exact:hardware&" \
-               "selected_facets=country_code_exact:usa".format(
-            reverse("company-search-list")
+        path = (
+            "{0}facets/?facet.field.specialties&facet.field.country_code&"
+            "selected_facets=specialties_exact:hardware&"
+            "selected_facets=country_code_exact:usa".format(reverse("company-search-list"))
         )
         _logger.info("Path: {}".format(path))
         response = self.api_client.get(path)
@@ -241,7 +244,7 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         self.assertTrue("Telecommunications" in specialties)
         self.assertEqual(specialties["Telecommunications"], 1)
 
-    def step9_fuzzy_search(self):
+    def step09_fuzzy_search(self):
         # Find companies that contains the words "on-premises services" with 2 words within
         # each other.
         # The BigML Description: "BigML offers cloud-based and on-premises machine learning services, distributed ...",
@@ -261,3 +264,53 @@ class GetAllCompanyTest(CaravaggioBaseTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(response.data["total"], 2)
+
+    def step10_within_search(self):
+        # Find companies that the point is inside a radius of 10 units from the 40.0, -120.0 point
+        path = "{0}?point=IsWithin(BUFFER(POINT(40.0 -120.0),10.0))".format(reverse("company-search-list"))
+        _logger.info("Path: {}".format(path))
+        response = self.api_client.get(path)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response.data["total"], 1)
+        self.assertEqual(response.data["results"][0]["name"], "BigML")
+
+        # Find companies that the point is inside a radius of 10 units from the 40.0, -120.0 point
+        path = "{0}?point=IsWithin(BUFFER(POINT(95.0 95.0),10.0))".format(reverse("company-search-list"))
+        _logger.info("Path: {}".format(path))
+        response = self.api_client.get(path)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response.data["total"], 1)
+        self.assertEqual(response.data["results"][0]["name"], "Stealth Communications")
+
+    def step11_intersects_search(self):
+        # Find companies that the line string contains the point 50, 20
+        path = "{0}?linestring=Intersects(POINT(50 20))".format(reverse("company-search-list"))
+        _logger.info("Path: {}".format(path))
+        response = self.api_client.get(path)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response.data["total"], 1)
+        self.assertEqual(response.data["results"][0]["name"], "BigML")
+
+        # Find companies that the line string contains the point 30, 10
+        path = "{0}?linestring=Intersects(POINT(30 10))".format(reverse("company-search-list"))
+        _logger.info("Path: {}".format(path))
+        response = self.api_client.get(path)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response.data["total"], 1)
+        self.assertEqual(response.data["results"][0]["name"], "Stealth Communications")
+
+    def step12_heatmap_facet(self):
+        # Find the heatmap for the company with name = BigML
+        path = "{0}facets/?name=BigML&facet.heatmap.point=gridLevel:6".format(reverse("company-search-list"))
+        _logger.info("Path: {}".format(path))
+        response = self.api_client.get(path)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response.data["objects"]["count"], 1)
+        self.assertEqual(response.data["objects"]["results"][0]["name"], "BigML")
+        self.assertEqual(len(response.data["heatmaps"]), 1)
+        self.assertEqual(response.data["heatmaps"]["point"]["gridLevel"], 6)

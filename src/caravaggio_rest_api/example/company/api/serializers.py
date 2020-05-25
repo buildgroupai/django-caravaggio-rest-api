@@ -29,9 +29,6 @@ class AddressSerializerV1(dse_serializers.UserTypeSerializer):
     country_code = serializers.CharField(required=False, max_length=3)
     zipcode = serializers.CharField(required=False, max_length=10)
 
-    latitude = serializers.FloatField(required=False)
-    longitude = serializers.FloatField(required=False)
-
     class Meta(object):
         """Meta options."""
 
@@ -86,6 +83,8 @@ class CompanySerializerV1(dse_serializers.CassandraModelSerializer, BaseCachedSe
             "websites",
             "crawler_config",
             "extra_data",
+            "point",
+            "linestring",
         )
         read_only_fields = ("_id", "user", "created_at", "updated_at")
 
@@ -148,6 +147,8 @@ class CompanySearchSerializerV1(CustomHaystackSerializer, BaseCachedSerializerMi
             "extra_data",
             "text",
             "score",
+            "point",
+            "linestring",
         ]
 
 
@@ -210,6 +211,8 @@ class CompanyGEOSearchSerializerV1(CustomHaystackSerializer, BaseCachedSerialize
             "text",
             "score",
             "distance",
+            "point",
+            "linestring",
         ]
 
 
@@ -231,6 +234,7 @@ class CompanyFacetSerializerV1(CustomHaystackFacetSerializer):
             "specialties",
             "last_round",
             "headcount",
+            "point",
         ]
 
         # IMPORTANT

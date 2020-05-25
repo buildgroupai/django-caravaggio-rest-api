@@ -69,6 +69,8 @@ class DSEBackend(CassandraSolrSearchBackend):
             facets["fields"] = json.loads(raw_results.get("facet_fields", "{}"))
             facets["dates"] = json.loads(raw_results.get("facet_dates", "{}"))
             facets["queries"] = json.loads(raw_results.get("facet_queries", "{}"))
+            if "facet_heatmaps" in raw_results:
+                facets["heatmaps"] = json.loads(raw_results.get("facet_heatmaps", "{}"))
 
         if result_class is None:
             result_class = SearchResult
@@ -200,7 +202,7 @@ class DSEBackend(CassandraSolrSearchBackend):
         if fields:
             # If we have fields that starts with _ we need to escape them for the CQL
             if isinstance(fields, (list, set)):
-                fields = " ".join([f"\"{field}\"" for field in fields])
+                fields = " ".join([f'"{field}"' for field in fields])
 
         kwargs = super().build_search_kwargs(
             query_string,
@@ -224,6 +226,16 @@ class DSEBackend(CassandraSolrSearchBackend):
             collate=collate,
             **extra_kwargs,
         )
+
+        if "heatmap_facets" in kwargs:
+            heatmap_facets = kwargs.pop("heatmap_facets")
+            kwargs["facet"] = "on"
+            for field, options in heatmap_facets.items():
+                if "facet.heatmap" not in kwargs:
+                    kwargs["facet.heatmap"] = list(heatmap_facets.keys())
+
+                for key, value in options.items():
+                    kwargs["f.%s.facet.heatmap.%s" % (field, key)] = value
 
         if "facet.field" in kwargs:
             kwargs["facet.field"] = list(kwargs["facet.field"])
@@ -348,8 +360,8 @@ class DSEBackend(CassandraSolrSearchBackend):
 
             fields = fields.replace(" score", "")
             fields = fields.replace("score ", "")
-            fields = fields.replace(" \"score\"", "")
-            fields = fields.replace("\"score\" ", "")
+            fields = fields.replace(' "score"', "")
+            fields = fields.replace('"score" ', "")
             fields = fields.replace(" ", ", ")
 
         rows = kwargs.pop("rows", None)
@@ -408,10 +420,7 @@ class DSEBackend(CassandraSolrSearchBackend):
 class DSEQuery(CassandraSolrSearchQuery):
     def __init__(self, using=DEFAULT_ALIAS):
         super(DSEQuery, self).__init__(using=using)
-        self.query_filter = SolrSearchNode()
-        self.json_facets = {}
-        self.range_facets = {}
-        self.facets_options = {}
+        self.heatmap_facets = {}
 
     def get_count(self):
         """
@@ -435,6 +444,22 @@ class DSEQuery(CassandraSolrSearchQuery):
     def get_results(self, **kwargs):
         kwargs["is_result"] = True
         return super().get_results(**kwargs)
+
+    def add_heatmap_facet(self, field, **options):
+        self.heatmap_facets[field] = options
+
+    def _clone(self, klass=None, using=None):
+        clone = super()._clone(klass=klass, using=using)
+        clone.heatmap_facets = self.heatmap_facets.copy()
+        return clone
+
+    def build_params(self, spelling_query=None, **kwargs):
+        kwargs = super().build_params(spelling_query, **kwargs)
+
+        if self.heatmap_facets:
+            kwargs["heatmap_facets"] = self.heatmap_facets
+
+        return kwargs
 
 
 class DSEEngine(BaseEngine):

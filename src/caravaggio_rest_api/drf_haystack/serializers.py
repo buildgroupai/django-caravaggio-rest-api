@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*
 # Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
+from collections import OrderedDict
+
 from drf_haystack.serializers import HaystackSerializer, HaystackFacetSerializer
 from rest_framework import serializers, fields
+from rest_framework.fields import DictField
 from rest_framework_cache.cache import cache
 from drf_queryfields import QueryFieldsMixin
 
@@ -14,7 +17,6 @@ from rest_framework_cache.utils import get_cache_key
 
 from caravaggio_rest_api import fields as dse_fields
 from caravaggio_rest_api.dse.columns import Decimal, KeyEncodedMap
-from caravaggio_rest_api.utils import get_primary_keys_values
 
 try:
     from dse.cqlengine import columns
@@ -249,3 +251,28 @@ class CustomHaystackSerializer(HaystackSerializer):
 class CustomHaystackFacetSerializer(HaystackFacetSerializer):
     class Meta:
         error_status_codes = {HTTP_400_BAD_REQUEST: "Bad Request"}
+
+    def get_fields(self):
+        """
+        This returns a dictionary containing the top most fields,
+        ``dates``, ``fields`` and ``queries``.
+        """
+        field_mapping = OrderedDict()
+        for field, data in self.instance.items():
+            if field == "heatmaps":
+                # heatmaps is a special facet so we can't use facet_dict_field_class
+                field_mapping.update({field: DictField(data)})
+            else:
+                field_mapping.update(
+                    {
+                        field: self.facet_dict_field_class(
+                            child=self.facet_list_field_class(child=self.facet_field_serializer_class(data)),
+                            required=False,
+                        )
+                    }
+                )
+
+        if self.serialize_objects is True:
+            field_mapping["objects"] = serializers.SerializerMethodField()
+
+        return field_mapping
