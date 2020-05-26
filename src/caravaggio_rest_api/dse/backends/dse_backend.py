@@ -355,8 +355,11 @@ class DSEBackend(CassandraSolrSearchBackend):
     def kwargs_to_dse_format(self, kwargs):
         fields = kwargs.pop("fl", None)
         if fields:
-            if isinstance(fields, (list, set)):
-                fields = " ".join([f"\"{field}\"" for field in fields])
+            if isinstance(fields, list):
+                for i, field in enumerate(fields):
+                    if not field.startswith('"') and not field == "score":
+                        fields[i] = '"%s"' % field
+                fields = " ".join(fields)
 
             fields = fields.replace(" score", "")
             fields = fields.replace("score ", "")
