@@ -46,6 +46,9 @@ class CaravaggioHaystackFacetFilter(DRFHaystackFacetFilter):
             for field, options in applicable_filters["facets_options"].items():
                 queryset = queryset.facets_option(field, options)
 
+            for field, options in applicable_filters["heatmap_facets"].items():
+                queryset = queryset.heatmap_facet(field, **options)
+
         return queryset
 
 

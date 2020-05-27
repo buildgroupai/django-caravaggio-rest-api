@@ -3,14 +3,16 @@
 # All rights reserved.
 # This software is proprietary and confidential and may not under
 # any circumstances be used, copied, or distributed.
+import re
 import warnings
 import operator
 from itertools import chain
 from dateutil import parser
+from django.db.models import Q
 
 from django.utils import six
 
-from rest_framework.fields import UUIDField
+from rest_framework.fields import UUIDField, DictField
 
 from drf_haystack.query import FilterQueryBuilder, FacetQueryBuilder
 from drf_haystack.utils import merge_dict
@@ -34,6 +36,7 @@ class CaravaggioFacetQueryBuilder(FacetQueryBuilder):
         date_facets = {}
         query_facets = {}
         range_facets = {}
+        heatmap_facets = {}
         facets_options = {}
         facet_serializer_cls = self.view.get_facet_serializer_class()
 
@@ -57,7 +60,19 @@ class CaravaggioFacetQueryBuilder(FacetQueryBuilder):
             if field not in fields or field in exclude:
                 continue
 
-            field_options = merge_dict(field_options, {field: self.parse_field_options(self.view.lookup_sep, *options)})
+            field_options = merge_dict(field_options, {field: self.parse_field_options(*options)})
+
+        for field, options in filters.items():
+            if not field.startswith("facet.heatmap."):
+                continue
+
+            field = field[len("facet.heatmap.") :]
+
+            if field not in fields or field in exclude:
+                continue
+
+            heatmap_options = self.parse_field_options(*options)
+            heatmap_facets[field] = heatmap_options
 
         valid_gap = ("year", "month", "day", "hour", "minute", "second")
         for field, options in field_options.items():
@@ -92,6 +107,7 @@ class CaravaggioFacetQueryBuilder(FacetQueryBuilder):
             "query_facets": query_facets,
             "range_facets": range_facets,
             "facets_options": facets_options,
+            "heatmap_facets": heatmap_facets,
         }
 
     def parse_field_options(self, *options):
@@ -146,6 +162,24 @@ class CaravaggioFilterQueryBuilder(FilterQueryBuilder):
     Query builder class suitable for doing basic filtering.
     """
 
+    @staticmethod
+    def tokenize(stream, separator):
+        """
+        Tokenize and yield query parameter values. If the value is a function, we don't need to tokenize it.
+
+        :param stream: Input value
+        :param separator: Character to use to separate the tokens.
+        :return:
+        """
+        for value in stream:
+            if re.match(r"^[A-Za-z]*\(.*\)$", value):
+                # If the value is a function, we don't need to tokenize it.
+                yield value
+            else:
+                for token in value.split(separator):
+                    if token:
+                        yield token.strip()
+
     def build_query(self, **filters):
         """
         Creates a single SQ filter from querystring parameters that correspond
@@ -193,6 +227,12 @@ class CaravaggioFilterQueryBuilder(FilterQueryBuilder):
                 ):
                     continue
 
+            operator_term = operator.or_
+            if "and" in param_parts:
+                operator_term = operator.and_
+                param_parts.pop(param_parts.index("and"))
+                param = param.replace("__and", "")
+
             # START CARAVAGGIO (UUID fields)
             # There are fields that can be expressed in different format,
             # for instance the UUID, you can inform them using '-' or not.
@@ -209,6 +249,9 @@ class CaravaggioFilterQueryBuilder(FilterQueryBuilder):
                             ]
                         else:
                             value[0] = field_repr.to_representation(field_repr.to_internal_value(value[0]))
+                    if isinstance(field_repr, DictField):
+                        param = f"{base_param}_{param_parts.pop(1)}__{param_parts[1]}"
+                        param_parts[0] = param
             # END CARAVAGGIO
 
             field_queries = []
@@ -221,7 +264,7 @@ class CaravaggioFilterQueryBuilder(FilterQueryBuilder):
 
             field_queries = [fq for fq in field_queries if fq]
             if len(field_queries) > 0:
-                term = six.moves.reduce(operator.or_, field_queries)
+                term = six.moves.reduce(operator_term, field_queries)
                 if excluding_term:
                     applicable_exclusions.append(term)
                 else:

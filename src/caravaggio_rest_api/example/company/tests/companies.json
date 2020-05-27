@@ -6,6 +6,8 @@
   "stock_symbol": "XXX",
   "contact_email": "info@stealth.net",
   "founders": ["bc3697b1-3f4c-4cc9-8af4-0b00c82eef03", "bc3697b1-3f4c-4cc9-8af4-0b00c82eef04", "bc3697b1-3f4c-4cc9-8af4-0b00c82eef05"],
+  "point": "POINT(100.0 100.0)",
+  "linestring": "LINESTRING (30.0 10.0, 10.0 30.0, 40.0 40.0)",
   "address": {
     "street_type": "Street",
     "city": "New York",
@@ -76,6 +78,8 @@
   "founders": ["bb3697b1-3f4c-4cc9-8af4-0b00c82eef03", "cc3697b1-3f4c-4cc9-8af4-0b00c82eef03", "dd3697b1-3f4c-4cc9-8af4-0b00c82eef03"],
   "latitude": 44.59641,
   "longitude": -123.25022,
+  "point": "POINT(44.59641 -123.25022)",
+  "linestring": "LINESTRING (50 20, 20 40, 50 50)",
   "address": {
     "street_type": "Street",
     "street_name": "NW 9th, Suite D",

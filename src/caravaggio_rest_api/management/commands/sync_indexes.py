@@ -48,41 +48,80 @@ $${
 }$$
 """
 
+STR_SEARCH_JSON_SNIPPED = """
+$${
+    "analyzer": [
+      {
+        "type": "index",
+        "tokenizer": { "class": "solr.KeywordTokenizerFactory" },
+        "filter": [
+          { "class": "solr.LowerCaseFilterFactory" },
+          { "class": "solr.ASCIIFoldingFilterFactory" }
+        ]
+      },
+      {
+        "type": "search",
+        "tokenizer": { "class": "solr.KeywordTokenizerFactory" },        
+        "filter": [
+          { "class": "solr.LowerCaseFilterFactory" },
+          { "class": "solr.ASCIIFoldingFilterFactory" }
+        ]
+      }
+    ]
+}$$
+"""
+
 
 def _define_types(ks_name, raw_cf_name):
     # Define a TextField type to analyze texts (tokenizer, ascii, etc.)
     try:
         execute(
-            "ALTER SEARCH INDEX SCHEMA ON {0}.{1}"
-            " ADD types.fieldType[@name='TextField',"
-            " @class='org.apache.solr.schema.TextField']"
-            " WITH {2};".format(ks_name, raw_cf_name, TEXT_SEARCH_JSON_SNIPPED)
+            f"ALTER SEARCH INDEX SCHEMA ON {ks_name}.{raw_cf_name}"
+            f" ADD types.fieldType[@name='TextField',"
+            f" @class='org.apache.solr.schema.TextField']"
+            f" WITH {TEXT_SEARCH_JSON_SNIPPED};"
         )
     except Exception as ex:
-        _logger.warning("Maybe te field type has been already" " defined in the schema. Cause: {}".format(ex))
+        _logger.warning("Maybe te field type TextField has been already" " defined in the schema. Cause: {}".format(ex))
         pass
 
-    # Define a TrieFloatField type to analyze texts (tokenizer, ascii, etc.)
     try:
         execute(
-            "ALTER SEARCH INDEX SCHEMA ON {0}.{1}"
-            " ADD types.fieldType[@name='TrieFloatField',"
-            " @class='org.apache.solr.schema.TrieFloatField'];".format(ks_name, raw_cf_name)
+            f"ALTER SEARCH INDEX SCHEMA ON {ks_name}.{raw_cf_name}"
+            f" ADD types.fieldType[@name='ISCStrField',"
+            f" @class='org.apache.solr.schema.TextField']"
+            f" WITH {STR_SEARCH_JSON_SNIPPED};"
         )
     except Exception as ex:
-        _logger.warning("Maybe te field type has been already" " defined in the schema. Cause: {}".format(ex))
+        _logger.warning(
+            "Maybe te field type ISCStrField has been already" " defined in the schema. Cause: {}".format(ex)
+        )
         pass
 
-    # Define a TrieIntField type to analyze texts (tokenizer, ascii, etc.)
-    try:
-        execute(
-            "ALTER SEARCH INDEX SCHEMA ON {0}.{1}"
-            " ADD types.fieldType[@name='TrieIntField',"
-            " @class='org.apache.solr.schema.TrieIntField'];".format(ks_name, raw_cf_name)
-        )
-    except Exception as ex:
-        _logger.warning("Maybe te field type has been already" " defined in the schema. Cause: {}".format(ex))
-        pass
+    types = ["TupleField", "SimpleDateField"]
+    for type in types:
+        try:
+            execute(
+                f"ALTER SEARCH INDEX SCHEMA ON {ks_name}.{raw_cf_name}"
+                f" ADD types.fieldType[@name='{type}',"
+                f" @class='com.datastax.bdp.search.solr.core.types.{type}'];"
+            )
+        except Exception as ex:
+            _logger.warning(f"Maybe te field type {type} has been already" " defined in the schema. Cause: {ex}")
+            pass
+
+    types = ["TrieLongField", "TrieDoubleField", "TrieIntField", "BoolField", "UUIDField", "TrieDateField"]
+    for type in types:
+        # Define a TrieFloatField type to analyze texts (tokenizer, ascii, etc.)
+        try:
+            execute(
+                f"ALTER SEARCH INDEX SCHEMA ON {ks_name}.{raw_cf_name}"
+                f" ADD types.fieldType[@name='{type}',"
+                f" @class='org.apache.solr.schema.{type}'];"
+            )
+        except Exception as ex:
+            _logger.warning(f"Maybe te field type {type} has been already" " defined in the schema. Cause: {ex}")
+            pass
 
     # Define a Point and LineString types for geospatial queries
     try:
@@ -148,7 +187,7 @@ def _process_field(
     ks_name,
     table_name,
     field_name,
-    field_type="StrField",
+    field_type="ISCStrField",
     indexed=True,
     stored=True,
     multivalued=False,
@@ -243,57 +282,68 @@ def _drop_unnecessary_indexes(ks_name, table_name, fieldsname):
 
 
 def _get_solr_type(model, index, search_field):
-    if "." not in search_field.model_attr:
-        attribute = getattr(model, search_field.model_attr, None)
-    else:
-        _logger.debug("Find field [{}] in UDT object.".format(search_field.model_attr))
-        attribute = _find_udt_attribute(model, search_field.model_attr)
+    try:
+        if "." not in search_field.model_attr:
+            attribute = getattr(model, search_field.model_attr, None)
+        else:
+            _logger.debug("Find field [{}] in UDT object.".format(search_field.model_attr))
+            attribute = _find_udt_attribute(model, search_field.model_attr)
 
-    _logger.debug("Attribute for [{}]: {}".format(search_field.model_attr, attribute))
+        _logger.debug("Attribute for [{}]: {}".format(search_field.model_attr, attribute))
 
-    if attribute:
-        clazz = attribute.column.__class__
-        if issubclass(clazz, columns.List):
-            clazz = attribute.column.types[0].__class__
-        elif issubclass(clazz, columns.Set):
-            clazz = attribute.column.types[0].__class__
+        if attribute:
+            clazz = attribute.column.__class__
+            if issubclass(clazz, columns.List):
+                clazz = attribute.column.types[0].__class__
+            elif issubclass(clazz, columns.Set):
+                clazz = attribute.column.types[0].__class__
 
-        if issubclass(clazz, columns.BigInt):
-            return "TrieLongField"
-        elif (
-            issubclass(clazz, columns.Integer)
-            or (issubclass(clazz, columns.SmallInt))
-            or (issubclass(clazz, columns.Counter))
-            or (issubclass(clazz, columns.VarInt))
+            if issubclass(clazz, columns.BigInt):
+                return "TrieLongField"
+            elif (
+                issubclass(clazz, columns.Integer)
+                or (issubclass(clazz, columns.SmallInt))
+                or (issubclass(clazz, columns.Counter))
+                or (issubclass(clazz, columns.VarInt))
+            ):
+                return "TrieIntField"
+            elif issubclass(clazz, columns.Double):
+                return "TrieDoubleField"
+            elif issubclass(clazz, columns.Float):
+                return "TrieFloatField"
+            elif issubclass(clazz, columns.Decimal):
+                return "TrieDecimalField"
+            elif issubclass(clazz, columns.Date):
+                return "SimpleDateField"
+            elif issubclass(clazz, columns.DateTime):
+                return "TrieDateField"
+            elif issubclass(clazz, columns.Time):
+                return "TrieDateField"
+            elif issubclass(clazz, columns.Boolean):
+                return "BoolField"
+            elif issubclass(clazz, columns.TimeUUID):
+                return "TimeUUIDField"
+            elif issubclass(clazz, columns.UUID):
+                return "UUIDField"
+
+        if issubclass(search_field.__class__, fields.LocationField):
+            return "LocationField"
+
+        if search_field.model_attr in index.Meta.text_fields and not search_field.faceted:
+            return "TextField"
+
+        if (
+            attribute.column.primary_key
+            or attribute.column.partition_key
+            or (hasattr(attribute.column, "unique") and attribute.column.unique)
         ):
-            return "TrieIntField"
-        elif issubclass(clazz, columns.Double):
-            return "TrieDoubleField"
-        elif issubclass(clazz, columns.Float):
-            return "TrieFloatField"
-        elif issubclass(clazz, columns.Decimal):
-            return "TrieDecimalField"
-        elif issubclass(clazz, columns.Date):
-            return "SimpleDateField"
-        elif issubclass(clazz, columns.DateTime):
-            return "TrieDateField"
-        elif issubclass(clazz, columns.Time):
-            return "TrieDateField"
-        elif issubclass(clazz, columns.Boolean):
-            return "BoolField"
-        elif issubclass(clazz, columns.TimeUUID):
-            return "TimeUUIDField"
-        elif issubclass(clazz, columns.UUID):
-            return "UUIDField"
+            return "StrField"
 
-    if issubclass(search_field.__class__, fields.LocationField):
-        return "LocationField"
-
-    if search_field.model_attr in index.Meta.text_fields:
-        return "TextField"
-
-    _logger.debug("StrFields for field: {}".format(search_field.model_attr))
-    return "StrField"
+        _logger.debug("ISCStrField for field: {}".format(search_field.model_attr))
+        return "ISCStrField"
+    except Exception as ex:
+        _logger.error(f"Unable to process index field [{search_field.index_fieldname}] of model {model}. Cause: {ex}")
+        raise ex
 
 
 def _create_index(model, index, connection=None):
@@ -311,6 +361,7 @@ def _create_index(model, index, connection=None):
     try:
         _logger.info("Creating SEARCH INDEX if not exists for model: {}".format(model))
         meta.keyspaces[ks_name].tables[raw_cf_name]
+        # primary_keys = model._primary_keys.keys()
         execute("CREATE SEARCH INDEX IF NOT EXISTS ON {0}.{1};".format(ks_name, raw_cf_name), timeout=30.0)
 
         if hasattr(index.Meta, "index_settings"):
@@ -397,7 +448,17 @@ def _create_index(model, index, connection=None):
             attribute = getattr(model, search_field.model_attr, None)
 
             # Indexed field?
-            if not (attribute and isinstance(attribute.column, columns.Map)):
+            if not (attribute and isinstance(attribute.column, columns.Map)) and not (
+                attribute
+                and hasattr(attribute.column, "value_col")
+                and (isinstance(attribute.column.value_col, columns.UserDefinedType))
+            ):
+                execute(
+                    "ALTER SEARCH INDEX SCHEMA ON {0}.{1}"
+                    " SET fields.field[@name='{2}']@type='{3}';".format(
+                        ks_name, raw_cf_name, search_field.model_attr, _get_solr_type(model, index, search_field)
+                    )
+                )
                 if search_field.indexed:
                     execute(
                         "ALTER SEARCH INDEX SCHEMA ON {0}.{1}"
@@ -414,7 +475,11 @@ def _create_index(model, index, connection=None):
                     )
 
             # Facet field?: force docValues=true
-            if not (attribute and isinstance(attribute.column, columns.Map)):
+            if not (attribute and isinstance(attribute.column, columns.Map)) and not (
+                attribute
+                and hasattr(attribute.column, "value_col")
+                and (isinstance(attribute.column.value_col, columns.UserDefinedType))
+            ):
                 if search_field.is_multivalued:
                     execute(
                         "ALTER SEARCH INDEX SCHEMA ON {0}.{1}"
@@ -432,9 +497,14 @@ def _create_index(model, index, connection=None):
 
             # All the document fields have to be TextFields to be
             # processed as tokens
-            if not (attribute and isinstance(attribute.column, columns.Map)):
+            if not (attribute and isinstance(attribute.column, columns.Map)) and not (
+                attribute
+                and hasattr(attribute.column, "value_col")
+                and (isinstance(attribute.column.value_col, columns.UserDefinedType))
+            ):
                 if issubclass(search_field.__class__, fields.CharField):
-                    if search_field.model_attr in index.Meta.text_fields:
+                    # if search_field.model_attr in index.Meta.text_fields:
+                    if search_field.model_attr in index.Meta.text_fields and not search_field.faceted:
                         _logger.info("Changing SEARCH INDEX field {0} to TextField".format(search_field.model_attr))
                         execute(
                             "ALTER SEARCH INDEX SCHEMA ON {0}.{1} "
@@ -447,7 +517,7 @@ def _create_index(model, index, connection=None):
                     # else:
                     #    execute(
                     #        "ALTER SEARCH INDEX SCHEMA ON {0}.{1} "
-                    #        " SET fields.field[@name='{2}']@type='StrField';".
+                    #        " SET fields.field[@name='{2}']@type='ISCStrField';".
                     #        format(
                     #            ks_name,
                     #            raw_cf_name,

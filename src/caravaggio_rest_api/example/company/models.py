@@ -13,7 +13,7 @@ except ImportError:
     from cassandra.cqlengine.columns import UserDefinedType
     from cassandra.cqlengine.usertype import UserType
 
-from caravaggio_rest_api.dse.columns import KeyEncodedMap
+from caravaggio_rest_api.dse.columns import KeyEncodedMap, Point, LineString
 
 from caravaggio_rest_api.dse.models import CustomDjangoCassandraModel
 
@@ -125,6 +125,10 @@ class Company(CustomDjangoCassandraModel):
     longitude = columns.Float()
 
     coordinates = columns.Text()
+
+    point = Point()
+
+    linestring = LineString()
 
     class Meta:
         get_pk_field = "_id"

@@ -76,7 +76,9 @@ class CaravaggioHaystackPageNumberPagination(CustomPageNumberPagination):
                 except SpatialError as ex:
                     pass
 
-                if "request" in data.serializer.context and ("fields" in data.serializer.context["request"].GET):
+                if hasattr(instance, "already_loaded") and instance.already_loaded:
+                    loaded_objects.append(instance.model(**instance.__dict__))
+                elif "request" in data.serializer.context and ("fields" in data.serializer.context["request"].GET):
                     filter_fields = list(model._primary_keys.keys())
                     selected_fields = data.serializer.context["request"].GET["fields"].split(",")
                     filter_fields.extend(list(selected_fields))

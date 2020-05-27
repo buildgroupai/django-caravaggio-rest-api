@@ -117,7 +117,7 @@ class CaravaggioBaseTest(TestCase):
         request=None,
         replace=None,
         serializer_action=None,
-        context=None
+        context=None,
     ):
 
         logging.info("Loading data from file {}".format(file))

@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from haystack import indexes
 
-from caravaggio_rest_api.haystack.indexes import BaseSearchIndex
+from caravaggio_rest_api.haystack.indexes import BaseSearchIndex, CaravaggioPointField, CaravaggioLineStringField
 
 from .models import Company
 
@@ -59,6 +59,10 @@ class CompanyIndex(BaseSearchIndex, indexes.Indexable):
 
     crawler_config = indexes.CharField(model_attr="crawler_config")
     extra_data = indexes.CharField(model_attr="extra_data")
+
+    point = CaravaggioPointField(model_attr="point")
+
+    linestring = CaravaggioLineStringField(model_attr="linestring")
 
     class Meta:
 
