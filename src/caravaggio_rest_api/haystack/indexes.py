@@ -3,13 +3,15 @@
 # All rights reserved.
 import json
 
+from django.utils import six
+
 try:
     from dse.util import Point, LineString
 except ImportError:
     from cassandra.util import Point, LineString
 
 from haystack import indexes
-from haystack.fields import LocationField
+from haystack.fields import LocationField, SearchField
 
 
 class BaseSearchIndex(indexes.SearchIndex):
@@ -60,3 +62,23 @@ class CaravaggioLineStringField(LocationField):
             return value
 
         return super().convert(value)
+
+
+class TextField(SearchField):
+    field_type = 'string'
+
+    def __init__(self, **kwargs):
+        # Text fields cannot be faceted
+        if kwargs.get('faceted') is not None:
+            kwargs.pop('faceted')
+
+        super(TextField, self).__init__(**kwargs)
+
+    def prepare(self, obj):
+        return self.convert(super(TextField, self).prepare(obj))
+
+    def convert(self, value):
+        if value is None:
+            return None
+
+        return six.text_type(value)

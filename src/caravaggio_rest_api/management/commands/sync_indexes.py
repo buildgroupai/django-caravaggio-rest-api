@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*
 # Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
-
+import inspect
 import logging
 
+from caravaggio_rest_api.haystack.indexes import TextField
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connections
 from django_cassandra_engine.utils import get_engine_from_db_alias
@@ -12,10 +13,12 @@ try:
     from dse.cqlengine.connection import execute
     from dse.cqlengine import query
     from dse.cqlengine import columns
+    from dse.cqlengine import models
 except ImportError:
     from cassandra.cqlengine.connection import execute
     from cassandra.cqlengine import query
     from cassandra.cqlengine import columns
+    from cassandra.cqlengine import models
 
 from django_cassandra_engine.compat import management
 
@@ -329,14 +332,13 @@ def _get_solr_type(model, index, search_field):
         if issubclass(search_field.__class__, fields.LocationField):
             return "LocationField"
 
-        if search_field.model_attr in index.Meta.text_fields and not search_field.faceted:
+        if (search_field.model_attr in index.Meta.text_fields and not search_field.faceted) or (
+                isinstance(search_field, TextField)):
             return "TextField"
 
         if (
-            attribute.column.primary_key
-            or attribute.column.partition_key
-            or (hasattr(attribute.column, "unique") and attribute.column.unique)
-        ):
+            attribute.column.primary_key or attribute.column.partition_key or (
+                hasattr(attribute.column, "unique") and attribute.column.unique)):
             return "StrField"
 
         _logger.debug("ISCStrField for field: {}".format(search_field.model_attr))
@@ -344,6 +346,11 @@ def _get_solr_type(model, index, search_field):
     except Exception as ex:
         _logger.error(f"Unable to process index field [{search_field.index_fieldname}] of model {model}. Cause: {ex}")
         raise ex
+
+
+# def _extra_create_search_index_params(model, exclude_fields):
+
+
 
 
 def _create_index(model, index, connection=None):
@@ -360,9 +367,22 @@ def _create_index(model, index, connection=None):
 
     try:
         _logger.info("Creating SEARCH INDEX if not exists for model: {}".format(model))
-        meta.keyspaces[ks_name].tables[raw_cf_name]
+
+        extra_params = ""
+        if hasattr(index.Meta, "exclude") and len(index.Meta.exclude) > 0:
+            field_names = [
+                f"\"{name}\"" for name, value in inspect.getmembers(
+                    model, lambda a: isinstance(a, models.ColumnQueryEvaluator))
+                if name not in index.Meta.exclude + ["pk"]]
+            extra_params = f' WITH COLUMNS {",".join(field_names)}'
+
+        # meta.keyspaces[ks_name].tables[raw_cf_name]
         # primary_keys = model._primary_keys.keys()
-        execute("CREATE SEARCH INDEX IF NOT EXISTS ON {0}.{1};".format(ks_name, raw_cf_name), timeout=30.0)
+        #  WITH OPTIONS {{ lenient:true }}
+        print("CREATE SEARCH INDEX IF NOT EXISTS ON {0}.{1}{2};".
+                format(ks_name, raw_cf_name, extra_params))
+        execute("CREATE SEARCH INDEX IF NOT EXISTS ON {0}.{1}{2};".
+                format(ks_name, raw_cf_name, extra_params), timeout=30.0)
 
         if hasattr(index.Meta, "index_settings"):
             for param, value in index.Meta.index_settings.items():
@@ -379,8 +399,8 @@ def _create_index(model, index, connection=None):
             if issubclass(attr.__class__, fields.SearchField)
         ]
 
-        if hasattr(index.Meta, "exclude") and len(index.Meta.exclude) > 0:
-            _drop_unnecessary_indexes(ks_name, raw_cf_name, index.Meta.exclude)
+        # if hasattr(index.Meta, "exclude") and len(index.Meta.exclude) > 0:
+        #    _drop_unnecessary_indexes(ks_name, raw_cf_name, index.Meta.exclude)
 
         document_fields = []
 

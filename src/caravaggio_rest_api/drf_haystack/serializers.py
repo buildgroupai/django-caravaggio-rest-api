@@ -3,9 +3,12 @@
 # All rights reserved.
 from collections import OrderedDict
 
+from caravaggio_rest_api.haystack.indexes import TextField
+from caravaggio_rest_api.utils import get_primary_keys_values
+from drf_haystack.fields import HaystackCharField
 from drf_haystack.serializers import HaystackSerializer, HaystackFacetSerializer
 from rest_framework import serializers, fields
-from rest_framework.fields import DictField
+from rest_framework.fields import DictField, empty
 from rest_framework_cache.cache import cache
 from drf_queryfields import QueryFieldsMixin
 
@@ -125,8 +128,13 @@ def deserialize_instance(serializer, model):
 
 def get_haystack_cache_key(instance, serializer, protocol):
     """Get cache key of instance"""
+    _id = "|".join([
+        "{0}:{1}".format(key, str(value))
+        for (key, value) in get_primary_keys_values(
+            instance, instance.model).items()])
+
     params = {
-        "id": instance.pk,
+        "id": _id,
         "app_label": instance.model._meta.app_label,
         "model_name": instance.model._meta.object_name,
         "serializer_name": serializer.__name__,
@@ -138,6 +146,7 @@ def get_haystack_cache_key(instance, serializer, protocol):
 
 class BaseCachedSerializerMixin(CachedSerializerMixin):
     def _get_cache_key(self, instance):
+
         request = self.context.get("request")
         protocol = request.scheme if request else "http"
 
@@ -156,6 +165,7 @@ class BaseCachedSerializerMixin(CachedSerializerMixin):
         Checks if the representation of instance is cached and adds to cache
         if is not.
         """
+
         key = self._get_cache_key(instance)
         if key and use_cache:
             cached = cache.get(key)
@@ -200,6 +210,7 @@ class CassandraModelSerializer(QueryFieldsMixin, DynamicFieldsSerializer):
     serializers.ModelSerializer.serializer_field_mapping[columns.Blob] = fields.FileField
     serializers.ModelSerializer.serializer_field_mapping[columns.List] = fields.ListField
     serializers.ModelSerializer.serializer_field_mapping[KeyEncodedMap] = fields.DictField
+    serializers.ModelSerializer.serializer_field_mapping[TextField] = fields.CharField
 
     # The DSE/Cassandra Decimal column is not supported by the DRF-Haystack
     # fields.Decimal serializer, we need to use fields.CharField instead.
@@ -246,6 +257,16 @@ class CustomHaystackSerializer(HaystackSerializer):
 
     class Meta:
         error_status_codes = {HTTP_400_BAD_REQUEST: "Bad Request"}
+
+    def __init__(self, instance=None, data=empty, **kwargs):
+        try:
+            if TextField in HaystackSerializer._field_mapping:
+                pass
+        except KeyError:
+            HaystackSerializer._field_mapping[TextField] = HaystackCharField
+            pass
+
+        super().__init__(instance, data, **kwargs)
 
 
 class CustomHaystackFacetSerializer(HaystackFacetSerializer):

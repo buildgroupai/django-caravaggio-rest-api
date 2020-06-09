@@ -48,6 +48,12 @@ class CaravaggioBaseTest(TestCase):
 
     api_client = APIClient()
 
+    client = None
+    super_user = None
+    client_admin = None
+    user = None
+    organization = None
+
     @classmethod
     def force_authenticate(cls, user):
         token = Token.objects.get(user__username=user.username)
@@ -103,7 +109,7 @@ class CaravaggioBaseTest(TestCase):
                 name="BuildGroup Data Services Inc.",
                 is_active=True,
                 client=cls.client,
-                owner=cls.user,
+                owner=cls.user
             )
 
     @classmethod
