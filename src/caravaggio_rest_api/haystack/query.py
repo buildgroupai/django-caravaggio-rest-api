@@ -5,6 +5,38 @@ from haystack.query import SearchQuerySet, ValuesSearchQuerySet, ValuesListSearc
 
 
 class CaravaggioSearchQuerySet(SearchQuerySet):
+
+    def get(self, *args, **kwargs):
+        """
+        Returns a single instance matching this query, optionally with additional filter kwargs.
+
+        Returns a single object matching the QuerySet.
+
+        .. code-block:: python
+
+            user = User.get(id=1)
+
+        If no objects are matched, a :class:`~.DoesNotExist` exception is raised.
+
+        If more than one object is found, a :class:`~.MultipleObjectsReturned` exception is raised.
+        """
+        if args or kwargs:
+            return self.filter(*args, **kwargs).get()
+
+        # Check that the resultset only contains one element, avoiding sending a COUNT query
+        try:
+            self[1]
+            raise list(self.query.models)[0].MultipleObjectsReturned('Multiple objects found')
+        except IndexError:
+            pass
+
+        try:
+            obj = self[0]
+        except IndexError:
+            raise list(self.query.models)[0].DoesNotExist
+
+        return obj
+
     def terms_json_facet(self, facet_name, field, facets, **kwargs):
         """Adds a terms json facet to a query for the provided field."""
         clone = self._clone()
