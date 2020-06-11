@@ -355,7 +355,9 @@ class DSEBackend(CassandraSolrSearchBackend):
     def kwargs_to_dse_format(self, kwargs):
         fields = kwargs.pop("fl", None)
         if fields:
-            if isinstance(fields, list):
+            if isinstance(fields, (list, tuple)):
+                if isinstance(fields, tuple):
+                    fields = list(fields)
                 for i, field in enumerate(fields):
                     if not field.startswith('"') and not field == "score":
                         fields[i] = '"%s"' % field
