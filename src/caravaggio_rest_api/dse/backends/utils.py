@@ -61,6 +61,7 @@ class DSEPaginator(CaravaggioSearchPaginator):
                 extra_values = self.loaded_docs - self.max_results
                 if extra_values < results_size:
                     self.results["results"] = self.results["results"][: results_size - extra_values]
+                    self.loaded_docs = self.max_results
 
             return self.results
         else:
