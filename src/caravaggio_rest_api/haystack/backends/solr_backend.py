@@ -409,7 +409,7 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
         conn = self.connections.get(core_name, None)
         if conn is None:
             url = "{0}/{1}".format(self.base_url, core_name)
-            conn = Solr(url, timeout=self.timeout, **self.conn_kwargs)
+            conn = Solr(url, timeout=self.timeout, **self.conn_kwargs, verify=False)
             self.connections[core_name] = conn
         return conn
 
