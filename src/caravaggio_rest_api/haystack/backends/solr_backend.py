@@ -63,7 +63,9 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
 
         self.conn_kwargs = connection_options.get("KWARGS", {})
 
-        self.conn = Solr(connection_options["URL"], timeout=self.timeout, **connection_options.get("KWARGS", {}))
+        self.conn = Solr(
+            connection_options["URL"], timeout=self.timeout, **connection_options.get("KWARGS", {}), verify=False
+        )
 
         self.log = logging.getLogger("haystack")
 
