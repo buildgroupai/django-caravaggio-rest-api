@@ -288,7 +288,7 @@ class DSEBackend(CassandraSolrSearchBackend):
             # we can't count with facets
             search_kwargs.pop("facet", None)
         fetch_size = DEFAULT_FETCH_SIZE
-        if has_paging and rows:
+        if has_paging and rows and not search_kwargs.get("start", None):
             fetch_size = rows
             rows = None
             search_kwargs["paging"] = "driver"
