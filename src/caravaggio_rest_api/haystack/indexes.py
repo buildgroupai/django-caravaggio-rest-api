@@ -2,6 +2,7 @@
 # Copyright (c) 2019 BuildGroup Data Services Inc.
 # All rights reserved.
 import json
+from json.decoder import JSONDecodeError
 
 from django.utils import six
 
@@ -43,7 +44,10 @@ class CaravaggioListField(indexes.MultiValueField):
 
         new_value = []
         for _value in value:
-            new_value.append(json.loads(_value))
+            try:
+                new_value.append(json.loads(_value))
+            except JSONDecodeError:
+                new_value.append(_value)
 
         return new_value
 
@@ -65,7 +69,7 @@ class CaravaggioLineStringField(LocationField):
 
 
 class TextField(SearchField):
-    field_type = 'string'
+    field_type = "string"
 
     def __init__(self, **kwargs):
         if kwargs.get('facet_class') is None:
