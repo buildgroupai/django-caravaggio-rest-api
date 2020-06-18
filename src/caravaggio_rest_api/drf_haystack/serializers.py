@@ -128,10 +128,12 @@ def deserialize_instance(serializer, model):
 
 def get_haystack_cache_key(instance, serializer, protocol):
     """Get cache key of instance"""
-    _id = "|".join([
-        "{0}:{1}".format(key, str(value))
-        for (key, value) in get_primary_keys_values(
-            instance, instance.model).items()])
+    _id = "|".join(
+        [
+            "{0}:{1}".format(key, str(value))
+            for (key, value) in get_primary_keys_values(instance, instance.model).items()
+        ]
+    )
 
     params = {
         "id": _id,
@@ -146,19 +148,20 @@ def get_haystack_cache_key(instance, serializer, protocol):
 
 class BaseCachedSerializerMixin(CachedSerializerMixin):
     def _get_cache_key(self, instance):
-
-        request = self.context.get("request")
-        protocol = request.scheme if request else "http"
-
-        # We bypass caching when using `fields` parameter in the requests
-        if "fields" in request.GET:
-            return None
-
-        return (
-            get_haystack_cache_key(instance, self.__class__, protocol)
-            if isinstance(instance, SearchResult)
-            else get_cache_key(instance, self.__class__, protocol)
-        )
+        #
+        # request = self.context.get("request")
+        # protocol = request.scheme if request else "http"
+        #
+        # # We bypass caching when using `fields` parameter in the requests
+        # if "fields" in request.GET:
+        #     return None
+        #
+        # return (
+        #     get_haystack_cache_key(instance, self.__class__, protocol)
+        #     if isinstance(instance, SearchResult)
+        #     else get_cache_key(instance, self.__class__, protocol)
+        # )
+        return None
 
     def to_representation(self, instance, use_cache=True):
         """
