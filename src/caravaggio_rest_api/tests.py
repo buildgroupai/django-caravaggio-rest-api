@@ -9,6 +9,7 @@ from collections import OrderedDict
 from decimal import Decimal
 
 from caravaggio_rest_api.drf_haystack.serializers import deserialize_instance
+from caravaggio_rest_api.utils import delete_all_records
 from django.contrib.auth import get_user_model
 from django.test.client import RequestFactory
 from rest_framework.authtoken.models import Token
@@ -20,7 +21,7 @@ from django.test import TestCase, modify_settings
 # from django_cassandra_engine.test import TestCase
 from spitslurp import slurp
 
-from caravaggio_rest_api.users.models import CaravaggioClient, CaravaggioOrganization
+from caravaggio_rest_api.users.models import CaravaggioClient, CaravaggioOrganization, CaravaggioUser
 
 TEST_AVOID_INDEX_SYNC = "CARAVAGGIO_AVOID_INDEX_SYNC"
 
@@ -48,7 +49,7 @@ class CaravaggioBaseTest(TestCase):
 
     api_client = APIClient()
 
-    client = None
+    caravaggio_client = None
     super_user = None
     client_admin = None
     user = None
@@ -68,49 +69,53 @@ class CaravaggioBaseTest(TestCase):
     def setUpTestData(cls):
         super().setUpTestData()
 
-        if "client" not in globals():
-            cls.client = cls.create_client(email="tests@buildgroupai.com", name="BuildGroup Data Services Inc.")
+        delete_all_records(CaravaggioOrganization)
+        delete_all_records(CaravaggioUser)
+        delete_all_records(CaravaggioClient)
 
-        if "user" not in globals():
-            cls.super_user = cls.create_user(
-                email="superuser@buildgroupai.ai",
-                first_name="Superuser",
-                last_name="BGDS IT",
-                is_superuser=True,
-                is_staff=True,
-                is_client_staff=True,
-            )
+        # if "client" not in globals():
+        cls.caravaggio_client = cls.create_client(email="tests@buildgroupai.com", name="BuildGroup Data Services Inc.")
 
-            cls.client_admin = cls.create_user(
-                email="admin@buildgroupai.ai",
-                first_name="Admin",
-                last_name="BGDS App",
-                is_superuser=False,
-                is_staff=False,
-                is_client_staff=True,
-                client=cls.client,
-            )
+        #if "user" not in globals():
+        cls.super_user = cls.create_user(
+            email="superuser@buildgroupai.ai",
+            first_name="Superuser",
+            last_name="BGDS IT",
+            is_superuser=True,
+            is_staff=True,
+            is_client_staff=True,
+        )
 
-            cls.user = cls.create_user(
-                email="user@buildgroupai.ai",
-                first_name="User",
-                last_name="BuildGroup LLC",
-                is_superuser=False,
-                is_staff=False,
-                is_client_staff=False,
-                client=cls.client,
-            )
+        cls.client_admin = cls.create_user(
+            email="admin@buildgroupai.ai",
+            first_name="Admin",
+            last_name="BGDS App",
+            is_superuser=False,
+            is_staff=False,
+            is_client_staff=True,
+            client=cls.caravaggio_client,
+        )
 
-            cls.force_authenticate(cls.user)
+        cls.user = cls.create_user(
+            email="user@buildgroupai.ai",
+            first_name="User",
+            last_name="BuildGroup LLC",
+            is_superuser=False,
+            is_staff=False,
+            is_client_staff=False,
+            client=cls.caravaggio_client,
+        )
 
-        if "organization" not in globals():
-            cls.organization = cls.create_organization(
-                email="tests@buildgroupai.com",
-                name="BuildGroup Data Services Inc.",
-                is_active=True,
-                client=cls.client,
-                owner=cls.user
-            )
+        cls.force_authenticate(cls.user)
+
+        # if "organization" not in globals():
+        cls.organization = cls.create_organization(
+            email="tests@buildgroupai.com",
+            name="BuildGroup Data Services Inc.",
+            is_active=True,
+            client=cls.caravaggio_client,
+            owner=cls.user
+        )
 
     @classmethod
     def load_test_data(
@@ -204,7 +209,7 @@ class CaravaggioBaseTest(TestCase):
         is_client_staff=False,
     ):
 
-        client = client if client else cls.client
+        client = client if client else cls.caravaggio_client
 
         user_data = {
             "username": "{}-{}".format(client.id, email),
@@ -221,7 +226,7 @@ class CaravaggioBaseTest(TestCase):
     @classmethod
     def create_organization(cls, email, name, is_active, client, owner):
 
-        client = client if client else cls.client
+        client = client if client else cls.caravaggio_client
         owner = owner if owner else cls.user
 
         organization_data = {"email": email, "name": name, "client": client, "is_active": is_active, "owner": owner}

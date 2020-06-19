@@ -266,10 +266,11 @@ def _find_udt_attribute(model, field_name):
         if attribute.column.__class__ == columns.UserDefinedType:
             clazz = attribute.column.user_type
 
-        if issubclass(clazz, columns.List):
-            clazz = attribute.column.types[0].__class__
-        elif issubclass(clazz, columns.Set):
-            clazz = attribute.column.types[0].__class__
+        if issubclass(clazz, (columns.List, columns.Set)):
+            if attribute.column.types[0].__class__ == columns.UserDefinedType:
+                clazz = attribute.column.types[0].user_type
+            else:
+                clazz = attribute.column.types[0].__class__
         _logger.debug("[UDT] Model for field [{}]: {}".format(field_segments[0], clazz))
         return _find_udt_attribute(clazz, ".".join(field_segments[1:]))
 

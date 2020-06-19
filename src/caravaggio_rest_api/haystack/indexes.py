@@ -11,7 +11,7 @@ except ImportError:
     from cassandra.util import Point, LineString
 
 from haystack import indexes
-from haystack.fields import LocationField, SearchField
+from haystack.fields import LocationField, SearchField, FacetCharField
 
 
 class BaseSearchIndex(indexes.SearchIndex):
@@ -68,9 +68,8 @@ class TextField(SearchField):
     field_type = 'string'
 
     def __init__(self, **kwargs):
-        # Text fields cannot be faceted
-        if kwargs.get('faceted') is not None:
-            kwargs.pop('faceted')
+        if kwargs.get('facet_class') is None:
+            kwargs['facet_class'] = FacetCharField
 
         super(TextField, self).__init__(**kwargs)
 

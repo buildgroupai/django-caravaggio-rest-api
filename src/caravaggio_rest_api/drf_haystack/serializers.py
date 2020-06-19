@@ -195,6 +195,9 @@ class DynamicFieldsSerializer(serializers.HyperlinkedModelSerializer):
             for not_requested in all_fields - set(fields):
                 self.fields.pop(not_requested)
 
+    def get_request_user(self):
+        return self.context.get("request").user
+
 
 class CassandraModelSerializer(QueryFieldsMixin, DynamicFieldsSerializer):
 
