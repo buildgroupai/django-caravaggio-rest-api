@@ -152,7 +152,10 @@ class CaravaggioBaseTest(TestCase):
             file_content = slurp(file)
             if replace:
                 for term, value in replace.items():
-                    file_content = file_content.replace(f"@@{term}@@", value)
+                    if isinstance(value, (list, set)):
+                        file_content = file_content.replace(f"\"@@{term}@@\"", json.dumps(value))
+                    else:
+                        file_content = file_content.replace(f"@@{term}@@", value)
             data = json.loads(file_content)
 
             if serializer_class:
