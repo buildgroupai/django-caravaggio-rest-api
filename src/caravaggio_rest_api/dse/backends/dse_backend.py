@@ -58,12 +58,14 @@ class DSEBackend(CassandraSolrSearchBackend):
         if len(raw_results) == 1 and "rows_count" in raw_results[0]:
             hits = raw_results[0]["rows_count"]
         else:
-            hits = len(raw_results)
+            # we can't rely on the DSE response for the hits if we're not using the COUNT(*), that's why we set as 0 and
+            # if we need the hits later we will do a COUNT(*) query.
+            hits = 0
         facets = {}
         stats = {}
         spelling_suggestion = spelling_suggestions = None
         if is_faceted:
-            assert hits == 1, "Faceted searches should have only one result"
+            assert len(raw_results) == 1, "Faceted searches should have only one result"
             raw_results = raw_results[0]
 
             facets["fields"] = json.loads(raw_results.get("facet_fields", "{}"))
@@ -144,8 +146,6 @@ class DSEBackend(CassandraSolrSearchBackend):
                         additional_fields["score"] = 1.0
                     result = result_class(app_label, model_name, raw_result[DJANGO_ID], **additional_fields)
                     results.append(result)
-                else:
-                    hits -= 1
 
         results = {
             "results": results,
@@ -246,10 +246,12 @@ class DSEBackend(CassandraSolrSearchBackend):
         return kwargs
 
     def mount_query(self, table_name, query_string, select_fields, rows, is_count, **search_kwargs):
+        solr_query = dict(search_kwargs)
         if is_count:
             select_fields = "COUNT(*) as rows_count"
+            # we need to get all the hits from the query, so we can't use start
+            solr_query.pop("start", None)
 
-        solr_query = search_kwargs
         solr_query["q"] = query_string
         query = "SELECT %s FROM %s WHERE solr_query='%s'" % (select_fields, table_name, json.dumps(solr_query))
 
@@ -288,7 +290,7 @@ class DSEBackend(CassandraSolrSearchBackend):
             # we can't count with facets
             search_kwargs.pop("facet", None)
         fetch_size = DEFAULT_FETCH_SIZE
-        if has_paging and rows:
+        if has_paging and rows and not search_kwargs.get("start", None):
             fetch_size = rows
             rows = None
             search_kwargs["paging"] = "driver"
@@ -355,7 +357,9 @@ class DSEBackend(CassandraSolrSearchBackend):
     def kwargs_to_dse_format(self, kwargs):
         fields = kwargs.pop("fl", None)
         if fields:
-            if isinstance(fields, list):
+            if isinstance(fields, (list, tuple)):
+                if isinstance(fields, tuple):
+                    fields = list(fields)
                 for i, field in enumerate(fields):
                     if not field.startswith('"') and not field == "score":
                         fields[i] = '"%s"' % field
@@ -432,7 +436,7 @@ class DSEQuery(CassandraSolrSearchQuery):
         If the query has not been run, this will execute the query and store
         the results.
         """
-        if self._hit_count is None:
+        if not self._hit_count:
             if self._more_like_this:
                 # Special case for MLT.
                 self.run_mlt()

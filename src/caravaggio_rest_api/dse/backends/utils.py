@@ -18,6 +18,7 @@ class DSEPaginator(CaravaggioSearchPaginator):
         self.using = kwargs.pop("using", None)
         self.limit = kwargs.pop("limit", None)
         self.max_limit = kwargs.pop("max_limit", None)
+        self.max_results = kwargs.pop("max_results", None)
 
         self.search_kwargs = kwargs.copy()
 
@@ -34,6 +35,8 @@ class DSEPaginator(CaravaggioSearchPaginator):
     def has_next(self):
         # We cannot use CursorMarkets with Grouping. We will look if the
         # number of results is less than the informed limit
+        if self.max_results and self.loaded_docs >= self.max_results:
+            return False
         return self.results is None or self.has_more_pages
 
     def next(self):
@@ -51,7 +54,14 @@ class DSEPaginator(CaravaggioSearchPaginator):
                 query_string=self.query_string, has_paging=True, paging_state=self.paging_state, **self.search_kwargs
             )
 
-            self.loaded_docs += len(self.results["results"])
+            results_size = len(self.results["results"])
+            self.loaded_docs += results_size
+
+            if self.max_results and self.loaded_docs > self.max_results:
+                extra_values = self.loaded_docs - self.max_results
+                if extra_values < results_size:
+                    self.results["results"] = self.results["results"][: results_size - extra_values]
+                    self.loaded_docs = self.max_results
 
             return self.results
         else:

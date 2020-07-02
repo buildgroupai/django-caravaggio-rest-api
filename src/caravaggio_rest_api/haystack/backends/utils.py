@@ -24,6 +24,7 @@ class SolrSearchPaginator(CaravaggioSearchPaginator):
         self.max_limit = kwargs.pop("max_limit", None)
         self.percent_score = kwargs.pop("percent_score", None)
         self.models = kwargs.pop("models", None)
+        self.max_results = kwargs.pop("max_results", None)
 
         self.search_kwargs = kwargs.copy()
 
@@ -40,6 +41,9 @@ class SolrSearchPaginator(CaravaggioSearchPaginator):
         # We cannot use CursorMarkets with Grouping. We will look if the
         # number of results is less than the informed limit
         is_group = "group" in self.search_kwargs and "true" == self.search_kwargs[str("group")]
+
+        if self.max_results and self.loaded_docs >= self.max_results:
+            return False
 
         if is_group:
             valid_limit = self.limit if self.limit is not None and self.limit < self.max_limit else self.max_limit
@@ -82,9 +86,24 @@ class SolrSearchPaginator(CaravaggioSearchPaginator):
             )
 
             if is_group:
-                self.loaded_docs += len(self.results["groups"])
+                groups_size = len(self.results["groups"])
+                self.loaded_docs += groups_size
+                if self.max_results and self.loaded_docs > self.max_results:
+                    extra_values = self.loaded_docs - self.max_results
+                    if extra_values < groups_size:
+                        new_groups = {}
+                        for key in list(self.results["groups"])[: groups_size - extra_values]:
+                            new_groups[key] = self.results["groups"][key]
+                        self.results["groups"] = new_groups
+                        self.loaded_docs = self.max_results
             else:
-                self.loaded_docs += len(self.results["results"])
+                results_size = len(self.results["results"])
+                self.loaded_docs += results_size
+                if self.max_results and self.loaded_docs > self.max_results:
+                    extra_values = self.loaded_docs - self.max_results
+                    if extra_values < results_size:
+                        self.results["results"] = self.results["results"][: results_size - extra_values]
+                        self.loaded_docs = self.max_results
 
             return self.results
         else:
