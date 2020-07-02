@@ -76,7 +76,7 @@ class Command(BaseCommand):
         self.stdin = options.get("stdin", sys.stdin)  # Used for testing
         return super().execute(*args, **options)
 
-    def post_create_user(self, user):
+    def post_create_user(self, user, organization):
         pass
 
     def handle(self, *args, **options):
@@ -176,7 +176,7 @@ class Command(BaseCommand):
                         "Organization [{}] - role [{}]" " configured successfully.".format(organization.id, role)
                     )
 
-            self.post_create_user(object)
+            self.post_create_user(object, organization)
 
         except KeyboardInterrupt:
             self.stderr.write("\nOperation cancelled.")
