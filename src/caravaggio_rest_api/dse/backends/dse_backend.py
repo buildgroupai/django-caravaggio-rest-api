@@ -312,7 +312,7 @@ class DSEBackend(CassandraSolrSearchBackend):
                 else:
                     cursor = cursor.cursor
 
-                raw_results = cursor.execute(select_statement, paging_state=paging_state)
+                raw_results = cursor.execute(select_statement, paging_state=paging_state, timeout=self.timeout)
         except Exception as e:
             if not self.silently_fail:
                 raise
