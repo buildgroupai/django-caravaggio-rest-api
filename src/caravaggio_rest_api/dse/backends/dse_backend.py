@@ -320,7 +320,7 @@ class DSEBackend(CassandraSolrSearchBackend):
             self.log.error("Failed to query Solr using '%s': %s", query_string, e, exc_info=True)
             raw_results = []
 
-        if has_paging:
+        if has_paging and raw_results:
             has_more_pages = raw_results.has_more_pages
             paging_state = raw_results.paging_state
             raw_results = raw_results.current_rows
