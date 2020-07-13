@@ -349,8 +349,11 @@ class DSEBackend(CassandraSolrSearchBackend):
             is_faceted=search_kwargs.get("facet", None) is not None,
         )
 
-        if has_paging and raw_results:
-            final_results = final_results, has_more_pages, paging_state
+        if has_paging:
+            if raw_results:
+                final_results = final_results, has_more_pages, paging_state
+            else:
+                final_results = final_results, False, False
 
         return final_results
 
