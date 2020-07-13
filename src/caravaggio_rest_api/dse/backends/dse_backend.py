@@ -325,6 +325,8 @@ class DSEBackend(CassandraSolrSearchBackend):
             paging_state = raw_results.paging_state
             raw_results = raw_results.current_rows
         else:
+            has_more_pages = None
+            paging_state = None
             raw_results = [raw_result for raw_result in raw_results]
 
         if is_count:
