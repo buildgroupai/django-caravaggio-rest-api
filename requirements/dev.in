@@ -1,0 +1,8 @@
+-r base.in
+spitslurp
+django-debug-toolbar
+django-extensions
+
+pycodestyle
+sphinx
+sphinxcontrib-inlinesyntaxhighlight
