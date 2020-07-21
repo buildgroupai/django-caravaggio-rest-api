@@ -472,8 +472,8 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
         filter_types = {
             "content": ["%s", '"%s"'],
             "contains": ["*%s*", '"*%s*"'],
-            "endswith": ["*%s", '"*%s"'],
-            "startswith": ["%s*", '"%s*"'],
+            "endswith": ["*%s"],
+            "startswith": ["%s*"],
             "exact": ["%s", '"%s"'],
             "gt": ["{%s TO *}"],
             "gte": ["[%s TO *]"],
@@ -506,6 +506,14 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
                         if not len(query_frag)
                         else query_frag
                     )
+                elif filter_type in ["startswith", "endswith"]:
+                    if words_in_value == 0:
+                        query_frag = filter_types[filter_type][words_in_value] % prepared_value
+                    else:
+                        if filter_type in ["startswith"]:
+                            query_frag = " AND ".join(prepared_value.split()) + "*"
+                        else:
+                            query_frag = "*" + " AND ".join(prepared_value.split())
                 else:
                     query_frag = filter_types[filter_type][words_in_value] % prepared_value
             elif filter_type == "in":
