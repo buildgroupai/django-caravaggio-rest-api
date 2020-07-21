@@ -2,6 +2,14 @@
 Changelog
 ##########
 
+R202007-hotfix-1
+================
+
+Improvements or Changes
+***********************
+
+- Fixed the version for all the requirements
+
 R202007
 =======
 
