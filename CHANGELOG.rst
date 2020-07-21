@@ -9,6 +9,7 @@ Improvements or Changes
 ***********************
 
 - Fixed the version for all the requirements
+- Correct LIKE queries on strings that have more than one word
 
 R202007
 =======
