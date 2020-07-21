@@ -1,34 +1,19 @@
-Django>=2,<3
-wheel==0.30.0
-
-# Django Cassandra Models
-#cassandra-driver>=3.15.0
-#dse-driver>=2.6
-git+ssh://git@github.com/intellstartup/django-cassandra-engine.git@add-consistency-level-support#egg=django-cassandra-engine-1.6.0
-
-# Django REST framework
-django-registration>=3.0.1
-# djangorestframework>=3.7,<3.10
-djangorestframework-queryfields>=1.0.0
-django-rest-auth>=0.9.5
+wheel==0.34.2
+django==2.2.14
+django-configurations==2.1
+django-registration==3.1
+django-cassandra-engine==1.6.0
 djangorestframework-filters==1.0.0.dev0
-drf-yasg>=1.16.1
-packaging>=19.1
-rest-framework-cache>=0.1
-pyyaml>=5.1.2
-markdown>=2.6.11  # Markdown support for the browsable API.
-
-# Solr Queries for DataStax cores
-drf-haystack>=1.8.5
-pysolr>=3.7.0
-solrq>=1.1.1
-
-# Geospatial Data Abstraction Library
-gdal==2.3.3
-geopy>=1.17.0
-
-# Fuzzy
-fuzzywuzzy>=0.17
-
-# Redis cache for Django
-django-redis>=4.10.0
+# djangorestframework>=3.7,<3.10 # Imposed by DRF-Haystack
+djangorestframework-queryfields==1.0.0
+django-rest-auth==0.9.5
+drf-yasg==1.17.1
+packaging==20.4
+pyyaml==5.3.1
+rest-framework-cache==0.1-bgds-1
+django-redis==4.12.1
+markdown==3.2.2
+drf-haystack==2.8.1
+pysolr==3.9.0
+solrq==1.1.1
+fuzzywuzzy==0.18.0

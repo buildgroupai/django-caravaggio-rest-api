@@ -2,8 +2,16 @@
 Changelog
 ##########
 
-Current 0.1.7
-=============
+R202007-hotfix-1
+================
+
+Improvements or Changes
+***********************
+
+- Fixed the version for all the requirements
+
+R202007
+=======
 
 New Features
 ************
