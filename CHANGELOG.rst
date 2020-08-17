@@ -2,6 +2,13 @@
 Changelog
 ##########
 
+2020.07.4
+=========
+
+Improvements or Changes
+***********************
+- Add method to freeze columns on cassandra modelling
+
 R202007-hotfix-1
 ================
 

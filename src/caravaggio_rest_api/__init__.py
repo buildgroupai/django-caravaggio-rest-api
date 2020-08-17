@@ -7,7 +7,7 @@ r"""
 """
 
 __title__ = "Django Caravaggio REST API for Big Data"
-__version__ = "R202007-hotfix-1"
+__version__ = "2020.07.4"
 __author__ = "Javier Alperte"
 __license__ = "MIT"
 __copyright__ = "Copyright 2019 BuildGroup Data Services Inc."
