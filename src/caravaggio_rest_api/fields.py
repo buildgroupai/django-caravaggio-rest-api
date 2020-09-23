@@ -104,6 +104,9 @@ class CassandraJSONFieldAsText(fields.JSONField):
         return data
 
     def to_representation(self, value):
+        value = value.strip()
+        if not value:
+            return {}
         return json.loads(value)
 
 
