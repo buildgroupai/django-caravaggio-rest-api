@@ -111,13 +111,16 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
                     if facet_name == "count":
                         continue
 
-                    fields_name = list(buckets["buckets"][0].keys())
-                    fields_name.remove("val")
+                    if isinstance(buckets, dict):
+                        fields_name = list(buckets["buckets"][0].keys())
+                        fields_name.remove("val")
 
-                    for field_name in fields_name:
-                        json_facets["{0}_{1}".format(facet_name, field_name)] = [
-                            (bucket["val"], bucket[field_name]) for bucket in buckets["buckets"]
-                        ]
+                        for field_name in fields_name:
+                            json_facets["{0}_{1}".format(facet_name, field_name)] = [
+                                (bucket["val"], bucket[field_name]) for bucket in buckets["buckets"]
+                            ]
+                    else:
+                        json_facets[facet_name] = buckets
 
         results["facets"]["ranges"] = {}
 
