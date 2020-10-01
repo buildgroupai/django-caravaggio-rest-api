@@ -2,6 +2,10 @@
 Changelog
 ##########
 
+2020.10
+=======
+- Add support for JSON Facets on Solr
+
 2020.07.4
 =========
 
