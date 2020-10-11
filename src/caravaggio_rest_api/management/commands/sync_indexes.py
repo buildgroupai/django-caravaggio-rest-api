@@ -24,6 +24,7 @@ from django_cassandra_engine.compat import management
 
 from haystack.utils.loading import UnifiedIndex
 from haystack import fields
+from caravaggio_rest_api.haystack.indexes import TextField
 
 _logger = logging.getLogger(__name__)
 
@@ -523,7 +524,7 @@ def _create_index(model, index, connection=None):
                 and hasattr(attribute.column, "value_col")
                 and (isinstance(attribute.column.value_col, columns.UserDefinedType))
             ):
-                if issubclass(search_field.__class__, fields.CharField):
+                if issubclass(search_field.__class__, (fields.CharField, TextField)):
                     # if search_field.model_attr in index.Meta.text_fields:
                     if search_field.model_attr in index.Meta.text_fields and not search_field.faceted:
                         _logger.info("Changing SEARCH INDEX field {0} to TextField".format(search_field.model_attr))
@@ -534,7 +535,7 @@ def _create_index(model, index, connection=None):
                             )
                         )
 
-                        document_fields.append(search_field)
+                    document_fields.append(search_field)
                     # else:
                     #    execute(
                     #        "ALTER SEARCH INDEX SCHEMA ON {0}.{1} "
