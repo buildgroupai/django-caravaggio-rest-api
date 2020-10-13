@@ -2,6 +2,13 @@
 Changelog
 ##########
 
+2020.10.1
+=========
+
+Bug Fixing
+**********
+- Fix bugs on sync_indexes
+
 2020.10
 =======
 - Add support for JSON Facets on Solr
