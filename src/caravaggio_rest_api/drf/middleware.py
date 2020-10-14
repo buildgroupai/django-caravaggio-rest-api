@@ -26,7 +26,7 @@ class RequestLogMiddleware(object):
 
     def process_response(self, request, response):
         if settings.REST_FRAMEWORK["LOG_ACCESSES"]:
-            if response["content-type"] == "application/json":
+            if response.get("content-type") == "application/json":
                 if getattr(response, "streaming", False):
                     response_body = "<<<Streaming>>>"
                 else:
