@@ -261,7 +261,7 @@ class DSEBackend(CassandraSolrSearchBackend):
         return query
 
     def search(self, query_string, **kwargs):
-        if self.has_group(**kwargs) or self.has_percent_score(**kwargs):
+        if self.has_group(**kwargs) or self.has_percent_score(**kwargs) or self.has_json_facets(**kwargs):
             return self.backup_implementation.search(query_string, **kwargs)
         # In cassandra we can only query one table at a time, then only one
         # model should be present in the list of models
@@ -424,6 +424,9 @@ class DSEBackend(CassandraSolrSearchBackend):
 
     def has_group(self, **kwargs):
         return kwargs.get("group", "false") == "true"
+
+    def has_json_facets(self, **kwargs):
+        return kwargs.get("json_facets", None)
 
     def has_percent_score(self, **kwargs):
         return kwargs.get("percent_score", False)

@@ -6,7 +6,7 @@ Django<3
 django-redis
 django-configurations
 django-registration
-# djangorestframework>=3.7,<3.10    # imposed by drf-haystack
+djangorestframework==3.10.3    # imposed by drf-haystack
 djangorestframework-queryfields
 djangorestframework-filters==1.0.0.dev0
 django-rest-auth

@@ -2,6 +2,24 @@
 Changelog
 ##########
 
+2020.10.1
+=========
+
+Bug Fixing
+**********
+- Fix bugs on sync_indexes
+
+2020.10
+=======
+- Add support for JSON Facets on Solr
+
+2020.07.4
+=========
+
+Improvements or Changes
+***********************
+- Add method to freeze columns on cassandra modelling
+
 R202007-hotfix-1
 ================
 
@@ -9,6 +27,7 @@ Improvements or Changes
 ***********************
 
 - Fixed the version for all the requirements
+- Correct LIKE queries on strings that have more than one word
 
 R202007
 =======

@@ -110,3 +110,8 @@ class Decimal(columns.Decimal):
         )
         self.max_digits = max_digits
         self.decimal_places = decimal_places
+
+
+def freeze_column(column):
+    column._freeze_db_type()
+    return column

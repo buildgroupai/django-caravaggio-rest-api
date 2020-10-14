@@ -35,6 +35,8 @@ class CaravaggioSearchPaginator(object):
                 self.implementation = connection.solr_paginator(backend=backend, **self.original_kwargs)
             elif hasattr(connection, "solr_paginator") and self.original_kwargs.get("percent_score", False):
                 self.implementation = connection.solr_paginator(backend=backend, **self.original_kwargs)
+            elif hasattr(connection, "solr_paginator") and self.original_kwargs.get("json_facets", None):
+                self.implementation = connection.solr_paginator(backend=backend, **self.original_kwargs)
             else:
                 self.implementation = connection.paginator(backend=backend, **self.original_kwargs)
         self.backend = backend
