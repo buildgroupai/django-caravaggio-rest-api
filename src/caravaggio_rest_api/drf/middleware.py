@@ -22,10 +22,11 @@ class RequestLogMiddleware(object):
 
     def process_request(self, request):
         request.start_time = time.time()
+        request._request_body_to_log = request.body
 
     def process_response(self, request, response):
         if settings.REST_FRAMEWORK["LOG_ACCESSES"]:
-            if response["content-type"] == "application/json":
+            if response.get("content-type") == "application/json":
                 if getattr(response, "streaming", False):
                     response_body = "<<<Streaming>>>"
                 else:
@@ -48,7 +49,7 @@ class RequestLogMiddleware(object):
                 "server_hostname": socket.gethostname(),
                 "request_method": request.method,
                 "request_path": request.get_full_path(),
-                "request_body": request.body,
+                "request_body": request._request_body_to_log,
                 "request_query_params": request_query_params,
                 "response_status": response.status_code,
                 "response_body": response_body,
