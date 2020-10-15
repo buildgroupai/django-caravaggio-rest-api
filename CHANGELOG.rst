@@ -2,6 +2,13 @@
 Changelog
 ##########
 
+2020.10.2
+=========
+
+Bug Fixing
+**********
+- Fix of RawPostDataException on the API
+
 2020.10.1
 =========
 
