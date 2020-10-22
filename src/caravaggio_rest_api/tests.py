@@ -56,10 +56,21 @@ class CaravaggioBaseTest(TestCase):
     organization = None
 
     @classmethod
-    def force_authenticate(cls, user):
-        token = Token.objects.get(user__username=user.username)
-        cls.api_client.force_authenticate(user, token)
-        cls.api_client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
+    def force_authenticate(cls, user=None):
+        if user:
+            token = Token.objects.get(user__username=user.username)
+            cls.api_client.force_authenticate(user, token)
+        else:
+            cls.api_client.force_authenticate()
+
+    @classmethod
+    def authenticate(cls, user=None):
+        if user:
+            token = Token.objects.get(user__username=user.username)
+            cls.api_client.force_authenticate() # Logout
+            cls.api_client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
+        else:
+            cls.api_client.force_authenticate()
 
     @classmethod
     def setUpClass(cls):
@@ -69,6 +80,10 @@ class CaravaggioBaseTest(TestCase):
     def setUpTestData(cls):
         super().setUpTestData()
 
+        # Delete members relationship first
+        for organization in CaravaggioOrganization.objects.all():
+            organization.members.all().delete()
+            organization.administrators.all().delete()
         delete_all_records(CaravaggioOrganization)
         delete_all_records(CaravaggioUser)
         delete_all_records(CaravaggioClient)
