@@ -121,7 +121,7 @@ class CaravaggioBaseTest(TestCase):
             client=cls.caravaggio_client,
         )
 
-        cls.force_authenticate(cls.user)
+        cls.authenticate(cls.user)
 
         # if "organization" not in globals():
         cls.organization = cls.create_organization(
