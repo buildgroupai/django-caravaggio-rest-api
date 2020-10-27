@@ -1,22 +1,19 @@
 # -*- coding: utf-8 -*
 # Copyright (c) 2019 BuildGroup Data Services Inc.
+import ast
+import datetime
+import json
 import logging
 import re
-import json
-import datetime
-import ast
-
-from six import string_types
-from django.utils import six
-
 from django.core.exceptions import ImproperlyConfigured
-
-from haystack.inputs import Clean, Exact, PythonData, Raw
+from django.utils import six
 from haystack.backends import BaseEngine, EmptyResults
 from haystack.backends.solr_backend import SolrSearchQuery, SolrSearchBackend
 from haystack.constants import DJANGO_CT, DJANGO_ID, DEFAULT_ALIAS
 from haystack.exceptions import MissingDependency, FacetingError, MoreLikeThisError
+from haystack.inputs import Clean, Exact, PythonData, Raw
 from haystack.models import SearchResult
+from six import string_types
 
 from caravaggio_rest_api.haystack.backends import SolrSearchNode
 from caravaggio_rest_api.haystack.backends.utils import is_valid_uuid, SolrSearchPaginator
@@ -34,7 +31,7 @@ VALID_JSON_FACET_TYPES = ["terms", "query"]
 
 def group_facet_counts(lst, n):
     for i in range(0, len(lst), n):
-        val = lst[i : i + n]
+        val = lst[i: i + n]
         if len(val) == n:
             yield tuple(val)
 
@@ -82,15 +79,15 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
         raise NotImplemented("Clear is not allowed in DSE")
 
     def _process_results(
-        self, raw_results, model=None, highlight=False, result_class=None, distance_point=None, percent_score=False
+            self, raw_results, model=None, highlight=False, result_class=None, distance_point=None, percent_score=False
     ):
 
         results = super()._process_results(raw_results, highlight, result_class, distance_point)
 
         if (
-            percent_score
-            and hasattr(raw_results, "raw_response")
-            and "maxScore" in raw_results.raw_response["response"]
+                percent_score
+                and hasattr(raw_results, "raw_response")
+                and "maxScore" in raw_results.raw_response["response"]
         ):
             # means that the score will be the percentage between the score and the maxScore
             max_score = raw_results.raw_response["response"]["maxScore"]
@@ -269,29 +266,29 @@ class CassandraSolrSearchBackend(SolrSearchBackend):
         return values_processed if is_list else values_processed[0]
 
     def build_search_kwargs(
-        self,
-        query_string,
-        sort_by=None,
-        start_offset=0,
-        end_offset=None,
-        fields="",
-        highlight=False,
-        facets=None,
-        date_facets=None,
-        query_facets=None,
-        range_facets=None,
-        facets_options=None,
-        narrow_queries=None,
-        spelling_query=None,
-        within=None,
-        dwithin=None,
-        distance_point=None,
-        models=None,
-        limit_to_registered_models=None,
-        result_class=None,
-        stats=None,
-        collate=None,
-        **extra_kwargs,
+            self,
+            query_string,
+            sort_by=None,
+            start_offset=0,
+            end_offset=None,
+            fields="",
+            highlight=False,
+            facets=None,
+            date_facets=None,
+            query_facets=None,
+            range_facets=None,
+            facets_options=None,
+            narrow_queries=None,
+            spelling_query=None,
+            within=None,
+            dwithin=None,
+            distance_point=None,
+            models=None,
+            limit_to_registered_models=None,
+            result_class=None,
+            stats=None,
+            collate=None,
+            **extra_kwargs,
     ):
 
         self.date_facets = date_facets.copy() if date_facets else {}
@@ -485,12 +482,14 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
             "fuzzy": ["%s~", '"%s"~'],
             "regex": ["/%s/"],
             "iregex": ["/%s/"],
+            "isnull": ["-%s:[* TO *]", "%s:[* TO *]"],
         }
 
         if value.post_process is False:
             query_frag = prepared_value
         else:
-            if filter_type in ["content", "exact", "contains", "startswith", "endswith", "fuzzy", "regex", "iregex"]:
+            if filter_type in ["content", "exact", "contains", "startswith", "endswith", "fuzzy", "regex", "iregex",
+                               "isnull"]:
                 if value.input_type_name == "exact":
                     query_frag = prepared_value
                 elif filter_type == "fuzzy":
@@ -517,6 +516,11 @@ class CassandraSolrSearchQuery(SolrSearchQuery):
                             query_frag = " AND ".join(prepared_value.split()) + "*"
                         else:
                             query_frag = "*" + " AND ".join(prepared_value.split())
+                elif filter_type == "isnull":
+                    if prepared_value == "true":
+                        return filter_types[filter_type][0] % index_fieldname
+                    elif prepared_value == "false":
+                        return filter_types[filter_type][1] % index_fieldname
                 else:
                     query_frag = filter_types[filter_type][words_in_value] % prepared_value
             elif filter_type == "in":
