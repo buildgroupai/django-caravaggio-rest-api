@@ -335,12 +335,16 @@ def _get_solr_type(model, index, search_field):
             return "LocationField"
 
         if (search_field.model_attr in index.Meta.text_fields and not search_field.faceted) or (
-                isinstance(search_field, TextField)):
+            isinstance(search_field, TextField)
+        ):
             return "TextField"
 
         if (
-            attribute.column.primary_key or attribute.column.partition_key or (
-                hasattr(attribute.column, "unique") and attribute.column.unique)):
+            attribute.column.primary_key
+            or attribute.column.partition_key
+            or search_field.faceted
+            or (hasattr(attribute.column, "unique") and attribute.column.unique)
+        ):
             return "StrField"
 
         _logger.debug("ISCStrField for field: {}".format(search_field.model_attr))
@@ -351,8 +355,6 @@ def _get_solr_type(model, index, search_field):
 
 
 # def _extra_create_search_index_params(model, exclude_fields):
-
-
 
 
 def _create_index(model, index, connection=None):
@@ -373,18 +375,19 @@ def _create_index(model, index, connection=None):
         extra_params = ""
         if hasattr(index.Meta, "exclude") and len(index.Meta.exclude) > 0:
             field_names = [
-                f"\"{name}\"" for name, value in inspect.getmembers(
-                    model, lambda a: isinstance(a, models.ColumnQueryEvaluator))
-                if name not in index.Meta.exclude + ["pk"]]
+                f'"{name}"'
+                for name, value in inspect.getmembers(model, lambda a: isinstance(a, models.ColumnQueryEvaluator))
+                if name not in index.Meta.exclude + ["pk"]
+            ]
             extra_params = f' WITH COLUMNS {",".join(field_names)}'
 
         # meta.keyspaces[ks_name].tables[raw_cf_name]
         # primary_keys = model._primary_keys.keys()
         #  WITH OPTIONS {{ lenient:true }}
-        print("CREATE SEARCH INDEX IF NOT EXISTS ON {0}.{1}{2};".
-                format(ks_name, raw_cf_name, extra_params))
-        execute("CREATE SEARCH INDEX IF NOT EXISTS ON {0}.{1}{2};".
-                format(ks_name, raw_cf_name, extra_params), timeout=30.0)
+        print("CREATE SEARCH INDEX IF NOT EXISTS ON {0}.{1}{2};".format(ks_name, raw_cf_name, extra_params))
+        execute(
+            "CREATE SEARCH INDEX IF NOT EXISTS ON {0}.{1}{2};".format(ks_name, raw_cf_name, extra_params), timeout=30.0
+        )
 
         if hasattr(index.Meta, "index_settings"):
             for param, value in index.Meta.index_settings.items():
