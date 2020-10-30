@@ -2,6 +2,14 @@
 Changelog
 ##########
 
+2020.10.3
+=========
+
+Bug Fixing
+**********
+- Correct tests that was using the force_authentication method
+- Correct sync_indexes to match the new DSE version requirements
+
 2020.10.2
 =========
 
