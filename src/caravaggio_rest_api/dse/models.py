@@ -131,6 +131,16 @@ class CustomDjangoCassandraModel(six.with_metaclass(CustomDjangoCassandraModelMe
         # We also clean the DRF cache
         clear_for_instance(self)
 
+    def force_insert(self):
+        """
+        This method will force an insert to be used if we're calling .save(), this is useful when we edit frozen columns
+        on the update.
+
+        Ex: self.object.force_insert().save()
+        """
+        self._is_persisted = False
+        return self
+
 
 class BaseEntity(CustomDjangoCassandraModel):
     """
