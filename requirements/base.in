@@ -1,6 +1,5 @@
 psycopg2-binary
-dse-driver
-#cassandra-driver
+cassandra-driver==3.24.0
 
 Django<3
 django-redis
@@ -27,5 +26,5 @@ geopy
 
 fuzzywuzzy
 
-git+https://github.com/buildgroupai/django-cassandra-engine@add-consistency-level-support#egg=django-cassandra-engine-0
-git+https://github.com/buildgroupai/django-rest-framework-cache@master#egg=rest-framework-cache-0
+git+https://github.com/buildgroupai/django-cassandra-engine@add-consistency-level-support#egg=django-cassandra-engine
+git+https://github.com/buildgroupai/django-rest-framework-cache@master#egg=rest-framework-cache
